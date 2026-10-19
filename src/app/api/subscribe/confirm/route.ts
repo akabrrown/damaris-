@@ -12,7 +12,12 @@ export async function POST(req: NextRequest) {
   // Rate limit
   const rateLimit = await checkConfirmRateLimit(ip);
   if (!rateLimit.success) {
-    return problemResponse(429, 'RATE_LIMITED', 'Too Many Requests', 'Too many confirmation attempts. Please try again later.', undefined, requestId);
+    const extraHeaders: Record<string, string> = {};
+    if (rateLimit.reset) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((rateLimit.reset - Date.now()) / 1000));
+      extraHeaders['Retry-After'] = retryAfterSeconds.toString();
+    }
+    return problemResponse(429, 'RATE_LIMITED', 'Too Many Requests', 'Too many confirmation attempts. Please try again later.', undefined, requestId, extraHeaders);
   }
 
   let token = '';

@@ -66,13 +66,19 @@ export async function POST(req: NextRequest) {
     if (isFormPost) {
       return NextResponse.redirect(new URL('/?error=rate_limited', req.url));
     }
+    const extraHeaders: Record<string, string> = {};
+    if (rateLimit.reset) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((rateLimit.reset - Date.now()) / 1000));
+      extraHeaders['Retry-After'] = retryAfterSeconds.toString();
+    }
     return problemResponse(
       429,
       'RATE_LIMITED',
       'Rate Limit Exceeded',
       rateLimit.reason || 'Too many attempts. Please try again later.',
       undefined,
-      requestId
+      requestId,
+      extraHeaders
     );
   }
 

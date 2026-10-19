@@ -27,7 +27,8 @@ export function problemResponse(
   title: string,
   detail: string,
   errors?: Record<string, string[]>,
-  requestId?: string
+  requestId?: string,
+  extraHeaders?: Record<string, string>
 ) {
   const problem: ProblemDetails = {
     type: `https://example.com/probs/${code.toLowerCase().replace(/_/g, '-')}`,
@@ -41,6 +42,7 @@ export function problemResponse(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/problem+json',
+    ...(extraHeaders || {}),
   };
   if (requestId) {
     headers['x-request-id'] = requestId;

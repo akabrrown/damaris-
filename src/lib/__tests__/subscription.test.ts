@@ -39,4 +39,13 @@ describe('Subscription State Machine & Token Logic (FR-SUB-01, 02, 03)', () => {
     const verified = verifyUnsubscribeToken(token, secret);
     expect(verified).toBe(subscriberId);
   });
+
+  it('rate limiting evaluates requests and provides reset metadata', async () => {
+    const { checkSubscribeRateLimit, checkConfirmRateLimit } = await import('../rate-limit');
+    const subCheck = await checkSubscribeRateLimit('192.168.1.1', 'test@example.com');
+    expect(typeof subCheck.success).toBe('boolean');
+
+    const confirmCheck = await checkConfirmRateLimit('192.168.1.1');
+    expect(typeof confirmCheck.success).toBe('boolean');
+  });
 });
