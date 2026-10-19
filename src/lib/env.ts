@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  RESEND_API_KEY: z.string().min(1),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default('https://ozqllpgsshutwteyjfqw.supabase.co'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cWxscGdzc2h1dHd0ZXlqZnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNDkwNzQsImV4cCI6MjEwNzYyNTA3NH0.A-IHocbjctoZ9ieU_CWwYfBPyrpmSJ9h2zr-CKd3X4E'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cWxscGdzc2h1dHd0ZXlqZnF3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MjA0OTA3NCwiZXhwIjoyMTA3NjI1MDc0fQ.aHHh2s3iyOMuRtS1fTUlHBGuJxjE57SisCu16JIUnGk'),
+  RESEND_API_KEY: z.string().min(1).default('re_dummy_key'),
   RESEND_WEBHOOK_SECRET: z.string().min(1).optional().default('whsec_dummy'),
-  MAIL_FROM: z.string().min(1).default('Author <noreply@example.com>'),
+  MAIL_FROM: z.string().min(1).default('Caroline Damaris Donkor <noreply@carolinedamaris.com>'),
   QSTASH_TOKEN: z.string().min(1).optional().default('dummy_qstash_token'),
   QSTASH_CURRENT_SIGNING_KEY: z.string().min(1).optional().default('dummy_current_key'),
   QSTASH_NEXT_SIGNING_KEY: z.string().min(1).optional().default('dummy_next_key'),
   UPSTASH_REDIS_REST_URL: z.string().url().optional().default('https://dummy.upstash.io'),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional().default('dummy_redis_token'),
-  UNSUBSCRIBE_HMAC_SECRET: z.string().min(16),
-  NEXT_PUBLIC_SITE_URL: z.string().url().default('http://localhost:3000'),
+  UNSUBSCRIBE_HMAC_SECRET: z.string().min(16).default('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'),
+  NEXT_PUBLIC_SITE_URL: z.string().url().default('https://carolinedamaris.vercel.app'),
 });
 
 export type Env = z.infer<typeof envSchema>;

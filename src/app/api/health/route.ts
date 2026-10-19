@@ -5,7 +5,7 @@ import { getEnv } from '@/lib/env';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const envCheck: Record<string, any> = {
+  const envCheck: Record<string, unknown> = {
     has_supabase_url: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabase_url_host: process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).host : null,
     has_anon_key: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -18,8 +18,8 @@ export async function GET() {
   let getEnvResult = 'OK';
   try {
     getEnv();
-  } catch (err: any) {
-    getEnvResult = err.message || String(err);
+  } catch (err: unknown) {
+    getEnvResult = err instanceof Error ? err.message : String(err);
   }
   envCheck.getEnvResult = getEnvResult;
 
@@ -43,10 +43,10 @@ export async function GET() {
       count: data?.length ?? 0,
       posts: data?.map((p) => ({ slug: p.slug, kind: p.kind })),
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     envCheck.supabase_test = {
       success: false,
-      error: err.message || String(err),
+      error: err instanceof Error ? err.message : String(err),
     };
   }
 
