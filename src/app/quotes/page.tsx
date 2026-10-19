@@ -1,0 +1,27 @@
+import React from 'react';
+import { Metadata } from 'next';
+import { SectionIndex } from '@/components/section-index';
+
+export const metadata: Metadata = {
+  title: 'Quotes',
+  description: 'Lines and fragments to remember.',
+};
+
+export const revalidate = 3600;
+
+interface PageProps {
+  searchParams: Promise<{ cursor?: string }>;
+}
+
+export default async function QuotesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+
+  return (
+    <SectionIndex
+      kind="quote"
+      title="Quotes"
+      description="Lines, thoughts, and fragments held in quiet focus."
+      cursor={params.cursor}
+    />
+  );
+}
