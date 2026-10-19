@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import { getSiteSettings, getRecentPosts } from '@/lib/queries';
 import { EntryRow } from '@/components/entry-row';
-import { SubscribeForm } from '@/components/subscribe-form';
 
 export const revalidate = 3600; // 1 hour fallback; on-demand revalidated on publish
 
@@ -29,15 +28,6 @@ export default async function HomePage() {
         <p className="font-serif text-xl sm:text-2xl text-muted font-normal mt-4 leading-relaxed">
           {tagline}
         </p>
-      </section>
-
-      {/* Primary Subscribe Panel */}
-      <section aria-label="Subscribe to updates">
-        <SubscribeForm
-          layout="panel"
-          heading="New writing, by email."
-          helper="Just your email address. One quiet message when something new is published. Unsubscribe any time."
-        />
       </section>
 
       {/* Recent Writing Section */}
