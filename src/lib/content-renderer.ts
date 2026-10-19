@@ -20,6 +20,44 @@ export function renderVerse(text: string): string[][] {
 }
 
 /**
+ * Renders a single verse line with inline markdown formatting (italics, bold, links, code)
+ * while preserving leading space indentation for poetry (FR-READ-02) and ensuring XSS safety.
+ */
+export function renderVerseLineHtml(line: string): string {
+  if (!line || !line.trim()) return '&nbsp;';
+
+  // Count and preserve leading spaces as non-breaking spaces for indenting verses
+  const leadingSpacesMatch = line.match(/^( +)/);
+  const leadingSpaces = leadingSpacesMatch ? '&nbsp;'.repeat(leadingSpacesMatch[1].length) : '';
+  const trimmed = line.trimStart();
+
+  const inlineHtml = marked.parseInline(trimmed, { async: false }) as string;
+
+  const sanitized = sanitizeHtml(inlineHtml, {
+    allowedTags: ['b', 'i', 'strong', 'em', 'strike', 's', 'a', 'span', 'code'],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel', 'title'],
+      span: ['class'],
+    },
+    transformTags: {
+      a: (tagName, attribs) => {
+        const href = attribs.href || '';
+        const isExternal = href.startsWith('http://') || href.startsWith('https://');
+        return {
+          tagName: 'a',
+          attribs: {
+            ...attribs,
+            ...(isExternal ? { rel: 'noopener noreferrer' } : {}),
+          },
+        };
+      },
+    },
+  });
+
+  return `${leadingSpaces}${sanitized}`;
+}
+
+/**
  * Parses markdown to HTML and strictly sanitizes it.
  * Strips dangerous tags (script, iframe, style, object) and forces rel="noopener noreferrer" on links.
  */

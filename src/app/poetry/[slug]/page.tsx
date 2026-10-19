@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getPostBySlug, getAdjacentPosts } from '@/lib/queries';
-import { renderVerse } from '@/lib/content-renderer';
+import { renderVerse, renderVerseLineHtml } from '@/lib/content-renderer';
 import { PrevNextNav } from '@/components/prev-next-nav';
 import { ShareButton } from '@/components/share-button';
 import { SubscribeForm } from '@/components/subscribe-form';
@@ -60,9 +60,11 @@ export default async function PoemDetailPage({ params }: PageProps) {
         {stanzas.map((stanza, sIdx) => (
           <p key={sIdx} className="m-0">
             {stanza.map((line, lIdx) => (
-              <span key={lIdx} className="poem-line block">
-                {line || '\u00A0'}
-              </span>
+              <span
+                key={lIdx}
+                className="poem-line block"
+                dangerouslySetInnerHTML={{ __html: renderVerseLineHtml(line) }}
+              />
             ))}
           </p>
         ))}

@@ -8,7 +8,7 @@ import {
   verifyUnsubscribeToken,
 } from '../tokens';
 import { encodeCursor, decodeCursor } from '../cursor';
-import { renderVerse, sanitizeMarkdown } from '../content-renderer';
+import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '../content-renderer';
 import { subscribeSchema, postInputSchema, bookInputSchema } from '../schemas';
 
 describe('Domain Libraries (TDD)', () => {
@@ -99,6 +99,21 @@ describe('Domain Libraries (TDD)', () => {
       const html = sanitizeMarkdown(maliciousMd);
       expect(html).not.toContain('<script>');
       expect(html).toContain('rel="noopener noreferrer"');
+    });
+
+    it('renders poem lines with inline markdown formatting (italics, bold, links) and leading non-breaking spaces', () => {
+      const line = '    *whispers* in **silence** [link](https://example.com)';
+      const html = renderVerseLineHtml(line);
+      expect(html).toContain('&nbsp;&nbsp;&nbsp;&nbsp;');
+      expect(html).toContain('<em>whispers</em>');
+      expect(html).toContain('<strong>silence</strong>');
+      expect(html).toContain('href="https://example.com"');
+      expect(html).toContain('rel="noopener noreferrer"');
+    });
+
+    it('returns &nbsp; for empty or whitespace-only verse lines', () => {
+      expect(renderVerseLineHtml('')).toBe('&nbsp;');
+      expect(renderVerseLineHtml('   ')).toBe('&nbsp;');
     });
   });
 

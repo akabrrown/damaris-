@@ -1,10 +1,24 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { PostKind, PublishStatus } from '@/lib/schemas';
-import { createPostAction, updatePostAction, publishPostAction, unpublishPostAction, deletePostAction } from '@/lib/actions/admin-actions';
+import {
+  createPostAction,
+  updatePostAction,
+  publishPostAction,
+  unpublishPostAction,
+  deletePostAction,
+} from '@/lib/actions/admin-actions';
 import { generateSlug } from '@/lib/slug';
+import {
+  MarkdownToolbar,
+  wrapSelectionInTextarea,
+  prefixLinesInTextarea,
+  outdentLinesInTextarea,
+} from '@/components/markdown-toolbar';
+import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
+import { Edit3, Eye, Columns2, HelpCircle } from 'lucide-react';
 
 interface PostEditorProps {
   initialPost?: {
@@ -43,6 +57,119 @@ export function PostEditor({
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [notifySubscribers, setNotifySubscribers] = useState(kind !== 'quote'); // Default off for quotes (PRD FR-NTF-01)
   const [isPending, startTransition] = useTransition();
+
+  // Rich editing & live preview state
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [viewMode, setViewMode] = useState<'write' | 'split' | 'preview'>('write');
+  const [showGuide, setShowGuide] = useState(false);
+
+  // Keyboard formatting shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isMac = typeof window !== 'undefined' && navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
+    const modifier = isMac ? e.metaKey : e.ctrlKey;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (modifier && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      wrapSelectionInTextarea(textarea, bodyMd, '**', '**', 'bold text', setBodyMd);
+    } else if (modifier && e.key.toLowerCase() === 'i') {
+      e.preventDefault();
+      wrapSelectionInTextarea(textarea, bodyMd, '*', '*', 'italic text', setBodyMd);
+    } else if (modifier && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = bodyMd.slice(start, end);
+      const url = window.prompt('Enter target URL (e.g. https://...):', 'https://');
+      if (url) {
+        const linkText = selected.trim() || 'Link description';
+        const replacement = `[${linkText}](${url.trim()})`;
+        const nextValue = bodyMd.slice(0, start) + replacement + bodyMd.slice(end);
+        setBodyMd(nextValue);
+        requestAnimationFrame(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start, start + replacement.length);
+        });
+      }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        outdentLinesInTextarea(textarea, bodyMd, 4, setBodyMd);
+      } else {
+        prefixLinesInTextarea(textarea, bodyMd, '    ', setBodyMd);
+      }
+    }
+  };
+
+  const renderLivePreview = () => {
+    if (!bodyMd.trim()) {
+      return (
+        <div className="py-12 text-center text-muted italic text-sm">
+          Content written will appear here in real-time, styled exactly as visitors see it.
+        </div>
+      );
+    }
+
+    if (kind === 'poem') {
+      const stanzas = renderVerse(bodyMd);
+      return (
+        <article className="max-w-[36ch] mx-auto py-2">
+          {title && (
+            <header className="mb-6 text-left border-b border-line/50 pb-3">
+              <span className="text-xs uppercase tracking-wider text-muted block mb-1">Poem &middot; Reader View</span>
+              <h2 className="font-serif text-2xl sm:text-3xl text-ink font-normal">{title}</h2>
+            </header>
+          )}
+          <div className="poem-block text-ink text-left space-y-6 sm:space-y-8 my-4">
+            {stanzas.map((stanza, sIdx) => (
+              <p key={sIdx} className="m-0">
+                {stanza.map((line, lIdx) => (
+                  <span
+                    key={lIdx}
+                    className="poem-line block"
+                    dangerouslySetInnerHTML={{ __html: renderVerseLineHtml(line) }}
+                  />
+                ))}
+              </p>
+            ))}
+          </div>
+        </article>
+      );
+    }
+
+    if (kind === 'quote') {
+      return (
+        <article className="max-w-[52ch] mx-auto py-8 text-center">
+          <blockquote className="font-serif italic text-2xl sm:text-3xl text-ink leading-relaxed font-normal">
+            &ldquo;{bodyMd}&rdquo;
+          </blockquote>
+          {attribution && (
+            <p className="mt-4 text-sm uppercase tracking-wider text-muted font-medium">
+              — {attribution}
+            </p>
+          )}
+        </article>
+      );
+    }
+
+    return (
+      <article className="max-w-[62ch] mx-auto py-2">
+        {title && (
+          <header className="mb-6 border-b border-line/50 pb-3">
+            <span className="text-xs uppercase tracking-wider text-muted block mb-1">
+              {kind === 'story' ? 'Short Story' : 'Reflection'} &middot; Reader View
+            </span>
+            <h2 className="font-serif text-2xl sm:text-3xl text-ink font-normal">{title}</h2>
+          </header>
+        )}
+        <div
+          className="prose-reading leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: sanitizeMarkdown(bodyMd) }}
+        />
+      </article>
+    );
+  };
 
   const handleAutoSave = React.useCallback(async () => {
     if (!id || !bodyMd.trim()) return;
@@ -268,34 +395,197 @@ export function PostEditor({
           />
         </div>
 
-        {/* Body Textarea */}
+        {/* Body Editor with Formatting Tools & Live Preview */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label htmlFor="post-body" className="block text-xs uppercase tracking-wider text-muted font-medium">
-              {kind === 'poem' ? 'Poem Verses (Line breaks and stanzas preserved)' : kind === 'quote' ? 'Quote Text' : 'Markdown Content'}
-            </label>
-            {kind === 'quote' && (
-              <span className={`text-xs ${quoteLength > 600 ? 'text-alert font-bold' : 'text-muted'}`}>
-                {quoteLength} / 600 characters max
-              </span>
-            )}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-3">
+              <label htmlFor="post-body" className="block text-xs uppercase tracking-wider text-muted font-medium">
+                {kind === 'poem'
+                  ? 'Poem Verses (Line breaks and stanzas preserved)'
+                  : kind === 'quote'
+                  ? 'Quote Text'
+                  : 'Markdown Content'}
+              </label>
+
+              {kind === 'quote' && (
+                <span className={`text-xs ${quoteLength > 600 ? 'text-alert font-bold' : 'text-muted'}`}>
+                  {quoteLength} / 600 characters max
+                </span>
+              )}
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center space-x-1 bg-paper-deep border border-line p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('write')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                  viewMode === 'write' ? 'bg-paper text-ink shadow-xs border border-line/70' : 'text-muted hover:text-ink'
+                }`}
+                title="Write mode"
+              >
+                <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Write</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('split')}
+                className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                  viewMode === 'split' ? 'bg-paper text-ink shadow-xs border border-line/70' : 'text-muted hover:text-ink'
+                }`}
+                title="Side-by-side write and preview"
+              >
+                <Columns2 className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Split View</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('preview')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium cursor-pointer transition-colors ${
+                  viewMode === 'preview' ? 'bg-paper text-ink shadow-xs border border-line/70' : 'text-muted hover:text-ink'
+                }`}
+                title="Full reader preview mode"
+              >
+                <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Preview</span>
+              </button>
+            </div>
           </div>
-          <textarea
-            id="post-body"
-            rows={kind === 'quote' ? 5 : 18}
-            value={bodyMd}
-            onChange={(e) => setBodyMd(e.target.value)}
-            placeholder={
-              kind === 'poem'
-                ? 'Type poem lines here...\nUse single line breaks between lines,\nand blank lines between stanzas.'
-                : kind === 'quote'
-                ? 'Type the short quote here (maximum 600 characters)...'
-                : 'Write your story or reflection in Markdown...'
-            }
-            className={`w-full p-4 bg-paper border border-ink text-ink text-base leading-relaxed rounded-none focus:outline-2 focus:outline-moss ${
-              kind === 'poem' ? 'font-serif' : 'font-sans'
-            }`}
-          />
+
+          {/* Editor Layout based on View Mode */}
+          {viewMode === 'preview' ? (
+            <div className="border border-line bg-paper p-6 sm:p-10 min-h-[400px]">
+              <div className="text-[11px] uppercase tracking-wider text-muted font-mono mb-6 pb-2 border-b border-line flex items-center justify-between">
+                <span>Public Reader View</span>
+                <span>Matches live visitor experience</span>
+              </div>
+              {renderLivePreview()}
+            </div>
+          ) : viewMode === 'split' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <MarkdownToolbar
+                  textareaRef={textareaRef}
+                  value={bodyMd}
+                  onChange={setBodyMd}
+                  kind={kind}
+                />
+                <textarea
+                  ref={textareaRef}
+                  id="post-body"
+                  rows={kind === 'quote' ? 8 : 20}
+                  value={bodyMd}
+                  onKeyDown={handleKeyDown}
+                  onChange={(e) => setBodyMd(e.target.value)}
+                  placeholder={
+                    kind === 'poem'
+                      ? 'Type poem lines here...\nUse single line breaks between lines,\nand blank lines between stanzas.'
+                      : kind === 'quote'
+                      ? 'Type the short quote here (maximum 600 characters)...'
+                      : 'Write your story or reflection in Markdown...'
+                  }
+                  className={`w-full p-4 bg-paper border border-ink text-ink text-base leading-relaxed rounded-none focus:outline-2 focus:outline-moss ${
+                    kind === 'poem' ? 'font-serif' : 'font-sans'
+                  }`}
+                />
+              </div>
+
+              <div className="border border-line bg-paper p-6 overflow-y-auto max-h-[580px]">
+                <div className="text-[11px] uppercase tracking-wider text-muted font-mono mb-4 pb-2 border-b border-line flex items-center justify-between">
+                  <span>Live Reader Preview</span>
+                  <span>Instant</span>
+                </div>
+                {renderLivePreview()}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <MarkdownToolbar
+                textareaRef={textareaRef}
+                value={bodyMd}
+                onChange={setBodyMd}
+                kind={kind}
+              />
+              <textarea
+                ref={textareaRef}
+                id="post-body"
+                rows={kind === 'quote' ? 6 : 18}
+                value={bodyMd}
+                onKeyDown={handleKeyDown}
+                onChange={(e) => setBodyMd(e.target.value)}
+                placeholder={
+                  kind === 'poem'
+                    ? 'Type poem lines here...\nUse single line breaks between lines,\nand blank lines between stanzas.'
+                    : kind === 'quote'
+                    ? 'Type the short quote here (maximum 600 characters)...'
+                    : 'Write your story or reflection in Markdown...'
+                }
+                className={`w-full p-4 bg-paper border border-ink text-ink text-base leading-relaxed rounded-none focus:outline-2 focus:outline-moss ${
+                  kind === 'poem' ? 'font-serif' : 'font-sans'
+                }`}
+              />
+            </div>
+          )}
+
+          {/* Footer Stats & Formatting Guide Drawer */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-2 text-xs text-muted">
+            <div className="flex items-center space-x-3">
+              <span>{bodyMd.trim().split(/\s+/).filter(Boolean).length} words</span>
+              {kind === 'poem' ? (
+                <>
+                  <span>&middot;</span>
+                  <span>{bodyMd.split('\n').filter(Boolean).length} lines</span>
+                  <span>&middot;</span>
+                  <span>{bodyMd.trim().split(/\n{2,}/).filter(Boolean).length} stanzas</span>
+                </>
+              ) : (
+                <>
+                  <span>&middot;</span>
+                  <span>~{Math.ceil(bodyMd.trim().split(/\s+/).filter(Boolean).length / 200)} min read</span>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowGuide(!showGuide)}
+              className="flex items-center gap-1 text-moss hover:text-ink underline cursor-pointer"
+            >
+              <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{showGuide ? 'Hide formatting guide' : 'Formatting guide'}</span>
+            </button>
+          </div>
+
+          {/* Formatting Cheat Sheet Accordion */}
+          {showGuide && (
+            <div className="mt-4 p-4 bg-paper-deep border border-line text-xs space-y-3">
+              <h3 className="font-semibold text-ink uppercase tracking-wider text-[11px]">
+                Writing & Formatting Guide
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-muted">
+                <div>
+                  <p className="font-medium text-ink mb-1">Emphasis</p>
+                  <p><code className="bg-paper px-1">*italic*</code> &rarr; <em>italic</em></p>
+                  <p><code className="bg-paper px-1">**bold**</code> &rarr; <strong>bold</strong></p>
+                  <p><code className="bg-paper px-1">~strike~</code> &rarr; <s>strike</s></p>
+                </div>
+                <div>
+                  <p className="font-medium text-ink mb-1">Poetry & Spacing</p>
+                  <p>Line break &rarr; Press <kbd className="bg-paper px-1">Enter</kbd></p>
+                  <p>New stanza &rarr; Press <kbd className="bg-paper px-1">Enter</kbd> twice</p>
+                  <p>Indent line &rarr; 4 spaces or <kbd className="bg-paper px-1">Tab</kbd></p>
+                </div>
+                <div>
+                  <p className="font-medium text-ink mb-1">Structure & Links</p>
+                  <p><code className="bg-paper px-1">## Heading</code> &rarr; Section title</p>
+                  <p><code className="bg-paper px-1">&gt; Quote</code> &rarr; Pull quote</p>
+                  <p><code className="bg-paper px-1">[Title](url)</code> &rarr; Link</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Attribution (Quote only) */}

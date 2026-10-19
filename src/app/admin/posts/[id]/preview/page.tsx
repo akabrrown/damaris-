@@ -1,7 +1,7 @@
 import React from 'react';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { renderVerse, sanitizeMarkdown } from '@/lib/content-renderer';
+import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
 import { calculateReadingTime } from '@/lib/reading-time';
 
 interface PageProps {
@@ -44,9 +44,11 @@ export default async function DraftPreviewPage({ params }: PageProps) {
             {renderVerse(post.body_md).map((stanza, sIdx) => (
               <p key={sIdx} className="m-0">
                 {stanza.map((line, lIdx) => (
-                  <span key={lIdx} className="poem-line block">
-                    {line || '\u00A0'}
-                  </span>
+                  <span
+                    key={lIdx}
+                    className="poem-line block"
+                    dangerouslySetInnerHTML={{ __html: renderVerseLineHtml(line) }}
+                  />
                 ))}
               </p>
             ))}

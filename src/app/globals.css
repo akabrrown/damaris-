@@ -102,6 +102,61 @@ body {
   text-underline-offset: 5px;
 }
 
+.prose-reading ul {
+  list-style-type: disc;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.5em;
+}
+
+.prose-reading ol {
+  list-style-type: decimal;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.5em;
+}
+
+.prose-reading li {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+
+.prose-reading hr {
+  border: 0;
+  border-top: 1px solid #D3D7C0;
+  margin: 2.5em auto;
+  width: 38%;
+}
+
+.prose-reading strong,
+.prose-reading b {
+  font-weight: 600;
+  color: #232720;
+}
+
+.prose-reading em,
+.prose-reading i {
+  font-style: italic;
+}
+
+.prose-reading code {
+  font-family: monospace;
+  font-size: 0.9em;
+  background-color: #F1EEE4;
+  padding: 0.15em 0.35em;
+  border-radius: 2px;
+}
+
+.prose-reading pre {
+  background-color: #F1EEE4;
+  padding: 1rem;
+  border: 1px solid #D3D7C0;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.9em;
+  margin: 1.5em 0;
+}
+
 /* Poem verse formatting: hanging indent for wrapping lines on mobile (FR-READ-02) */
 .poem-block {
   font-family: var(--font-serif);
@@ -121,6 +176,26 @@ body {
   padding-left: 1.5em;
   text-indent: -1.5em;
   margin: 0;
+}
+
+.poem-line em,
+.poem-line i {
+  font-style: italic;
+}
+
+.poem-line strong,
+.poem-line b {
+  font-weight: 600;
+}
+
+.poem-line a {
+  color: #4F5A33;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.poem-line a:hover {
+  text-underline-offset: 5px;
 }
 
 /* Motion reduction */
