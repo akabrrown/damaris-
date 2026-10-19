@@ -1,14 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { getSiteSettings, getRecentPosts } from '@/lib/queries';
-import { EntryRow } from '@/components/entry-row';
+import { RecentWritingShowcase } from '@/components/recent-writing-showcase';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const [settings, recentPosts] = await Promise.all([
     getSiteSettings(),
-    getRecentPosts(6),
+    getRecentPosts(12),
   ]);
 
   const authorName = settings?.author_name || 'Caroline Damaris Donkor';
@@ -30,29 +30,8 @@ export default async function HomePage() {
         </p>
       </section>
 
-      {/* Recent Writing Section */}
-      <section aria-labelledby="recent-heading">
-        <div className="flex items-center justify-between border-b border-line pb-4 mb-2">
-          <h2 id="recent-heading" className="font-serif text-2xl sm:text-3xl text-ink font-normal">
-            Recent writing
-          </h2>
-          <span className="text-xs uppercase tracking-wider text-muted">Newest first</span>
-        </div>
-
-        {recentPosts.length > 0 ? (
-          <div className="divide-y divide-line/60">
-            {recentPosts.map((post) => (
-              <EntryRow key={post.id} post={post} showKindLabel={true} />
-            ))}
-          </div>
-        ) : (
-          <div className="py-16 text-center border-b border-line/40">
-            <p className="font-serif italic text-xl text-muted">
-              Nothing here yet. The first piece is on its way.
-            </p>
-          </div>
-        )}
-      </section>
+      {/* Redesigned Pinterest-Inspired Recent Writing Showcase */}
+      <RecentWritingShowcase posts={recentPosts} />
 
       {/* Sections Overview Links */}
       <section aria-labelledby="sections-heading" className="pt-8 border-t border-line">

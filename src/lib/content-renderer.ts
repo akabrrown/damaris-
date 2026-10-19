@@ -34,10 +34,16 @@ export function renderVerseLineHtml(line: string): string {
   const inlineHtml = marked.parseInline(trimmed, { async: false }) as string;
 
   const sanitized = sanitizeHtml(inlineHtml, {
-    allowedTags: ['b', 'i', 'strong', 'em', 'strike', 's', 'a', 'span', 'code'],
+    allowedTags: ['b', 'i', 'strong', 'em', 'strike', 's', 'a', 'span', 'code', 'div'],
     allowedAttributes: {
       a: ['href', 'target', 'rel', 'title'],
-      span: ['class'],
+      span: ['class', 'style'],
+      div: ['align', 'class', 'style'],
+    },
+    allowedStyles: {
+      '*': {
+        'text-align': [/^(left|right|center|justify)$/i],
+      },
     },
     transformTags: {
       a: (tagName, attribs) => {
@@ -69,11 +75,20 @@ export function sanitizeMarkdown(markdown: string): string {
   return sanitizeHtml(rawHtml, {
     allowedTags: [
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-      'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'pre'
+      'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'pre',
+      'div', 'span'
     ],
     allowedAttributes: {
       a: ['href', 'name', 'target', 'rel', 'title'],
       code: ['class'],
+      div: ['align', 'class', 'style'],
+      p: ['align', 'class', 'style'],
+      span: ['class', 'style'],
+    },
+    allowedStyles: {
+      '*': {
+        'text-align': [/^(left|right|center|justify)$/i],
+      },
     },
     transformTags: {
       a: (tagName, attribs) => {

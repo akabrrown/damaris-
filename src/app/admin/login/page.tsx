@@ -2,12 +2,14 @@
 
 import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<'password' | 'magic'>('password');
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState('');
@@ -95,15 +97,29 @@ export default function AdminLoginPage() {
               <label htmlFor="admin-pass" className="block text-xs uppercase tracking-wider text-muted font-medium mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                id="admin-pass"
-                name="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-paper border border-ink text-ink text-base rounded-none focus:outline-2 focus:outline-moss"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="admin-pass"
+                  name="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-3 pr-10 py-2 bg-paper border border-ink text-ink text-base rounded-none focus:outline-2 focus:outline-moss"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-muted hover:text-ink transition-colors cursor-pointer focus:outline-none focus:text-moss"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" aria-hidden="true" />
+                  ) : (
+                    <Eye className="w-4 h-4" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
           )}
 

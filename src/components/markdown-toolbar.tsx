@@ -13,6 +13,10 @@ import {
   Minus,
   Indent,
   Outdent,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
 } from 'lucide-react';
 import { PostKind } from '@/lib/schemas';
 
@@ -116,6 +120,38 @@ export function outdentLinesInTextarea(
   });
 }
 
+export function alignSelectionInTextarea(
+  textarea: HTMLTextAreaElement,
+  value: string,
+  alignment: 'left' | 'center' | 'right' | 'justify',
+  onChange: (val: string) => void
+) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = value.slice(start, end);
+  const textToAlign = selected.length > 0 ? selected : 'Aligned text';
+
+  // Strip existing alignment wrapper if already present
+  const clean = textToAlign
+    .replace(/^<div align="(?:left|center|right|justify)">\s*/i, '')
+    .replace(/\s*<\/div>$/i, '');
+
+  let replacement: string;
+  if (alignment === 'left') {
+    replacement = clean;
+  } else {
+    replacement = `<div align="${alignment}">\n\n${clean}\n\n</div>`;
+  }
+
+  const nextValue = value.slice(0, start) + replacement + value.slice(end);
+  onChange(nextValue);
+
+  requestAnimationFrame(() => {
+    textarea.focus();
+    textarea.setSelectionRange(start, start + replacement.length);
+  });
+}
+
 export function MarkdownToolbar({
   textareaRef,
   value,
@@ -138,6 +174,11 @@ export function MarkdownToolbar({
   const handleOutdent = (spaces = 4) => {
     if (!textareaRef.current) return;
     outdentLinesInTextarea(textareaRef.current, value, spaces, onChange);
+  };
+
+  const handleAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => {
+    if (!textareaRef.current) return;
+    alignSelectionInTextarea(textareaRef.current, value, alignment, onChange);
   };
 
   const handleInsertLink = () => {
@@ -323,6 +364,51 @@ export function MarkdownToolbar({
               <Minus className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
+
+          <span className="w-px h-4 bg-line mx-1" aria-hidden="true" />
+
+          {/* Text Alignment */}
+          <div className="flex items-center gap-0.5" role="group" aria-label="Text Alignment">
+            <button
+              type="button"
+              onClick={() => handleAlign('left')}
+              title="Align Left"
+              aria-label="Align left"
+              className="p-1.5 hover:bg-sage-soft text-ink rounded-xs focus-visible:outline-2 focus-visible:outline-moss cursor-pointer transition-colors"
+            >
+              <AlignLeft className="w-4 h-4" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleAlign('center')}
+              title="Align Center"
+              aria-label="Align center"
+              className="p-1.5 hover:bg-sage-soft text-ink rounded-xs focus-visible:outline-2 focus-visible:outline-moss cursor-pointer transition-colors"
+            >
+              <AlignCenter className="w-4 h-4" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleAlign('right')}
+              title="Align Right"
+              aria-label="Align right"
+              className="p-1.5 hover:bg-sage-soft text-ink rounded-xs focus-visible:outline-2 focus-visible:outline-moss cursor-pointer transition-colors"
+            >
+              <AlignRight className="w-4 h-4" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleAlign('justify')}
+              title="Justify Text"
+              aria-label="Justify text"
+              className="p-1.5 hover:bg-sage-soft text-ink rounded-xs focus-visible:outline-2 focus-visible:outline-moss cursor-pointer transition-colors"
+            >
+              <AlignJustify className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
         </>
       )}
 

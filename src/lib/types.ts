@@ -1,4 +1,5 @@
 import { PostKind, PublishStatus, BookProgress, SubscriberStatus } from './schemas';
+export type { PostKind, PublishStatus, BookProgress, SubscriberStatus };
 
 export type CommentStatus = 'pending' | 'approved' | 'spam' | 'deleted';
 

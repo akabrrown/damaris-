@@ -3,6 +3,7 @@ import {
   wrapSelectionInTextarea,
   prefixLinesInTextarea,
   outdentLinesInTextarea,
+  alignSelectionInTextarea,
 } from '@/components/markdown-toolbar';
 import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
 import { generateExcerpt } from '@/lib/excerpt';
@@ -108,5 +109,36 @@ describe('Editor Formatting Tools & Public Parity Pipeline', () => {
     const story = '### Prologue\n\nIt was a **cold** and misty morning on the hill. The village bells were ringing in the distance.';
     const excerpt = generateExcerpt(story, 'story');
     expect(excerpt).toBe('It was a cold and misty morning on the hill. The village bells were ringing in the distance.');
+  });
+
+  it('aligns text to center, right, and justify with clean html div wrappers', () => {
+    const textarea = document.createElement('textarea');
+    textarea.value = 'Center this stanza';
+    textarea.selectionStart = 0;
+    textarea.selectionEnd = 18;
+
+    let centeredValue = '';
+    alignSelectionInTextarea(textarea, textarea.value, 'center', (val) => {
+      centeredValue = val;
+    });
+
+    expect(centeredValue).toBe('<div align="center">\n\nCenter this stanza\n\n</div>');
+
+    const html = sanitizeMarkdown(centeredValue);
+    expect(html).toContain('align="center"');
+  });
+
+  it('removes alignment wrapper when align left is chosen', () => {
+    const textarea = document.createElement('textarea');
+    textarea.value = '<div align="center">\n\nAlready centered text\n\n</div>';
+    textarea.selectionStart = 0;
+    textarea.selectionEnd = textarea.value.length;
+
+    let leftValue = '';
+    alignSelectionInTextarea(textarea, textarea.value, 'left', (val) => {
+      leftValue = val;
+    });
+
+    expect(leftValue).toBe('Already centered text');
   });
 });
