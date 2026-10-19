@@ -30,6 +30,9 @@ export default async function AdminLayout({
                 <Link href="/admin/posts" className="text-muted hover:text-ink py-1">
                   Writing
                 </Link>
+                <Link href="/admin/comments" className="text-muted hover:text-ink py-1">
+                  Comments
+                </Link>
                 <Link href="/admin/books" className="text-muted hover:text-ink py-1">
                   Books
                 </Link>
@@ -41,6 +44,9 @@ export default async function AdminLayout({
                 </Link>
                 <Link href="/admin/notifications" className="text-muted hover:text-ink py-1">
                   Notifications
+                </Link>
+                <Link href="/admin/audit" className="text-muted hover:text-ink py-1">
+                  Audit
                 </Link>
               </nav>
             </div>

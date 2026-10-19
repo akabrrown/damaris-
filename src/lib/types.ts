@@ -1,5 +1,18 @@
 import { PostKind, PublishStatus, BookProgress, SubscriberStatus } from './schemas';
 
+export type CommentStatus = 'pending' | 'approved' | 'spam' | 'deleted';
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  author_name: string;
+  author_email: string | null;
+  content: string;
+  status: CommentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Post {
   id: string;
   kind: PostKind;
@@ -8,6 +21,7 @@ export interface Post {
   body_md: string;
   excerpt: string | null;
   attribution: string | null;
+  allow_comments: boolean;
   status: PublishStatus;
   published_at: string | null;
   created_at: string;

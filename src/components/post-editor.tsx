@@ -11,6 +11,7 @@ import {
   deletePostAction,
 } from '@/lib/actions/admin-actions';
 import { generateSlug } from '@/lib/slug';
+import { generateExcerpt } from '@/lib/excerpt';
 import {
   MarkdownToolbar,
   wrapSelectionInTextarea,
@@ -18,7 +19,9 @@ import {
   outdentLinesInTextarea,
 } from '@/components/markdown-toolbar';
 import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
+import { getPiecePath } from '@/lib/routing';
 import { Edit3, Eye, Columns2, HelpCircle } from 'lucide-react';
+
 
 interface PostEditorProps {
   initialPost?: {
@@ -29,6 +32,7 @@ interface PostEditorProps {
     body_md: string;
     excerpt: string | null;
     attribution: string | null;
+    allow_comments?: boolean;
     status: PublishStatus;
   };
   defaultKind?: PostKind;
@@ -48,8 +52,17 @@ export function PostEditor({
   const [slug, setSlug] = useState(initialPost?.slug || '');
   const [bodyMd, setBodyMd] = useState(initialPost?.body_md || '');
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || '');
+  const [isCustomExcerpt, setIsCustomExcerpt] = useState(Boolean(initialPost?.excerpt));
   const [attribution, setAttribution] = useState(initialPost?.attribution || '');
+  const [allowComments, setAllowComments] = useState<boolean>(initialPost?.allow_comments ?? true);
   const [status, setStatus] = useState<PublishStatus>(initialPost?.status || 'draft');
+
+  const handleBodyChange = (newBody: string) => {
+    setBodyMd(newBody);
+    if (!isCustomExcerpt) {
+      setExcerpt(generateExcerpt(newBody, kind));
+    }
+  };
 
   // Autosave status state
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -174,19 +187,21 @@ export function PostEditor({
   const handleAutoSave = React.useCallback(async () => {
     if (!id || !bodyMd.trim()) return;
     setSaveState('saving');
+    const finalExcerpt = excerpt.trim() || generateExcerpt(bodyMd, kind) || undefined;
     try {
       await updatePostAction(id, {
         title: title || undefined,
         body_md: bodyMd,
-        excerpt: excerpt || undefined,
+        excerpt: finalExcerpt,
         attribution: attribution || undefined,
         slug: slug || undefined,
+        allow_comments: allowComments,
       });
       setSaveState('saved');
     } catch {
       setSaveState('unsaved');
     }
-  }, [id, title, bodyMd, excerpt, attribution, slug]);
+  }, [id, title, bodyMd, excerpt, attribution, slug, kind, allowComments]);
 
   // Autosave timer
   useEffect(() => {
@@ -202,6 +217,7 @@ export function PostEditor({
 
   const handleSaveDraft = async () => {
     setErrorMessage('');
+    const finalExcerpt = excerpt.trim() || generateExcerpt(bodyMd, kind) || undefined;
     startTransition(async () => {
       try {
         if (!id) {
@@ -209,9 +225,10 @@ export function PostEditor({
             kind,
             title: title || undefined,
             body_md: bodyMd || ' ',
-            excerpt: excerpt || undefined,
+            excerpt: finalExcerpt,
             attribution: attribution || undefined,
             slug: slug || generateSlug(title || 'item'),
+            allow_comments: allowComments,
             status: 'draft',
             notify: false,
           });
@@ -221,9 +238,10 @@ export function PostEditor({
           await updatePostAction(id, {
             title: title || undefined,
             body_md: bodyMd,
-            excerpt: excerpt || undefined,
+            excerpt: finalExcerpt,
             attribution: attribution || undefined,
             slug: slug || undefined,
+            allow_comments: allowComments,
           });
         }
         setSaveState('saved');
@@ -343,6 +361,9 @@ export function PostEditor({
                   onClick={() => {
                     setKind(k);
                     setNotifySubscribers(k !== 'quote');
+                    if (!isCustomExcerpt && bodyMd) {
+                      setExcerpt(generateExcerpt(bodyMd, k));
+                    }
                   }}
                   className={`px-4 py-2 text-sm font-medium border ${
                     kind === k
@@ -469,7 +490,7 @@ export function PostEditor({
                 <MarkdownToolbar
                   textareaRef={textareaRef}
                   value={bodyMd}
-                  onChange={setBodyMd}
+                  onChange={handleBodyChange}
                   kind={kind}
                 />
                 <textarea
@@ -478,7 +499,7 @@ export function PostEditor({
                   rows={kind === 'quote' ? 8 : 20}
                   value={bodyMd}
                   onKeyDown={handleKeyDown}
-                  onChange={(e) => setBodyMd(e.target.value)}
+                  onChange={(e) => handleBodyChange(e.target.value)}
                   placeholder={
                     kind === 'poem'
                       ? 'Type poem lines here...\nUse single line breaks between lines,\nand blank lines between stanzas.'
@@ -505,7 +526,7 @@ export function PostEditor({
               <MarkdownToolbar
                 textareaRef={textareaRef}
                 value={bodyMd}
-                onChange={setBodyMd}
+                onChange={handleBodyChange}
                 kind={kind}
               />
               <textarea
@@ -514,7 +535,7 @@ export function PostEditor({
                 rows={kind === 'quote' ? 6 : 18}
                 value={bodyMd}
                 onKeyDown={handleKeyDown}
-                onChange={(e) => setBodyMd(e.target.value)}
+                onChange={(e) => handleBodyChange(e.target.value)}
                 placeholder={
                   kind === 'poem'
                     ? 'Type poem lines here...\nUse single line breaks between lines,\nand blank lines between stanzas.'
@@ -608,25 +629,74 @@ export function PostEditor({
         {/* Excerpt (Poems, Stories & Reflections) */}
         {(kind === 'poem' || kind === 'story' || kind === 'reflection') && (
           <div>
-            <label htmlFor="post-excerpt" className="block text-xs uppercase tracking-wider text-muted font-medium mb-1">
-              {kind === 'poem'
-                ? 'Strongest Line(s) / Featured Verse (Optional — defaults to opening lines)'
-                : 'Short Summary / Excerpt (Optional)'}
-            </label>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-2">
+                <label htmlFor="post-excerpt" className="block text-xs uppercase tracking-wider text-muted font-medium">
+                  {kind === 'poem'
+                    ? 'Strongest Line(s) / Featured Verse'
+                    : 'Short Summary / Excerpt'}
+                </label>
+                <span className="text-[10px] font-mono lowercase">
+                  {isCustomExcerpt ? (
+                    <span className="text-muted border border-line px-1.5 py-0.5">Custom</span>
+                  ) : (
+                    <span className="text-moss bg-sage-soft border border-moss/40 px-1.5 py-0.5 font-medium">
+                      Auto-generated
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const auto = generateExcerpt(bodyMd, kind);
+                  setExcerpt(auto);
+                  setIsCustomExcerpt(false);
+                }}
+                className="text-xs text-moss hover:text-ink hover:underline cursor-pointer"
+                title="Regenerate excerpt from content"
+              >
+                ↻ Re-generate from text
+              </button>
+            </div>
+
             <textarea
               id="post-excerpt"
               rows={2}
               value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
+              onChange={(e) => {
+                setExcerpt(e.target.value);
+                setIsCustomExcerpt(true);
+              }}
               placeholder={
                 kind === 'poem'
-                  ? 'e.g. The 1 or 2 strongest lines to display as the tap hook on your site...'
-                  : 'Brief summary to display in list views...'
+                  ? 'Auto-generated from first verse lines, or customize here...'
+                  : 'Auto-generated summary from text, or customize here...'
               }
-              className="w-full px-3 py-2 bg-paper border border-line text-sm text-ink rounded-none"
+              className="w-full px-3 py-2 bg-paper border border-line text-sm text-ink rounded-none focus:outline-2 focus:outline-moss"
             />
           </div>
         )}
+
+        {/* Reader Comments Setting */}
+        <div className="p-4 bg-paper-deep border border-line flex items-start justify-between gap-4">
+          <div>
+            <label htmlFor="post-allow-comments" className="text-sm font-medium text-ink block cursor-pointer">
+              Allow reader comments on this piece
+            </label>
+            <p className="text-xs text-muted mt-0.5">
+              When enabled, readers can leave reflections and comments below this piece. You can moderate or close comments at any time.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            id="post-allow-comments"
+            checked={allowComments}
+            onChange={(e) => setAllowComments(e.target.checked)}
+            className="h-4 w-4 mt-1 accent-moss cursor-pointer"
+          />
+        </div>
       </div>
 
       {/* Sticky Bottom Actions Bar */}
@@ -681,8 +751,9 @@ export function PostEditor({
             <p className="text-sm text-muted leading-relaxed">
               This piece will immediately become publicly readable at{' '}
               <code className="font-mono text-xs bg-paper-deep px-1">
-                /{kind === 'story' ? 'stories' : kind === 'reflection' ? 'reflections' : kind}/{slug}
+                {getPiecePath(kind, slug)}
               </code>.
+
             </p>
 
             {/* Email notification switch */}
@@ -700,6 +771,26 @@ export function PostEditor({
                   </span>
                   <span className="text-xs text-muted block">
                     {confirmedSubscribersCount} confirmed subscriber{confirmedSubscribersCount === 1 ? '' : 's'} will receive an update email once.
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {/* Reader comments switch in publish modal */}
+            <div className="p-4 bg-paper-deep border border-line space-y-2">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowComments}
+                  onChange={(e) => setAllowComments(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-moss"
+                />
+                <div>
+                  <span className="text-sm font-medium text-ink block">
+                    Allow reader comments on this piece
+                  </span>
+                  <span className="text-xs text-muted block">
+                    Readers can post reflections under the published piece.
                   </span>
                 </div>
               </label>

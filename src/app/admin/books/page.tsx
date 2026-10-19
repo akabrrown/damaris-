@@ -1,6 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { AdminBookRowActions } from '@/components/admin-book-row-actions';
+import { PublishStatus } from '@/lib/schemas';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -77,23 +79,12 @@ export default async function AdminBooksListPage() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 text-xs">
-                {b.status === 'published' && (
-                  <Link
-                    href={`/books/${b.slug}`}
-                    target="_blank"
-                    className="text-moss hover:text-ink underline"
-                  >
-                    View &rarr;
-                  </Link>
-                )}
-                <Link
-                  href={`/admin/books/${b.id}`}
-                  className="px-3 py-1 bg-sage/60 hover:bg-sage border border-ink text-ink font-medium"
-                >
-                  Edit
-                </Link>
-              </div>
+              <AdminBookRowActions
+                id={b.id}
+                slug={b.slug}
+                title={b.title}
+                status={b.status as PublishStatus}
+              />
             </div>
           ))}
         </div>

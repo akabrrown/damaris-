@@ -1,10 +1,10 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getPostBySlug, getAdjacentPosts, getSiteSettings } from '@/lib/queries';
+import { getPostBySlug, getAdjacentPosts, getSiteSettings, getPostComments } from '@/lib/queries';
 import { PrevNextNav } from '@/components/prev-next-nav';
 import { ShareButton } from '@/components/share-button';
-import { SubscribeForm } from '@/components/subscribe-form';
+import { CommentsSection } from '@/components/comments-section';
 
 export const revalidate = 3600;
 
@@ -34,7 +34,10 @@ export default async function QuoteDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { prev, next } = await getAdjacentPosts('quote', post);
+  const [{ prev, next }, comments] = await Promise.all([
+    getAdjacentPosts('quote', post),
+    getPostComments(post.id),
+  ]);
 
   const formattedDate = post.published_at
     ? new Date(post.published_at).toLocaleDateString('en-GB', {
@@ -65,7 +68,7 @@ export default async function QuoteDetailPage({ params }: PageProps) {
 
       {/* Share Button */}
       <div className="mt-12 pt-6 border-t border-line/60 flex items-center justify-center">
-        <ShareButton title={post.body_md.slice(0, 60)} />
+        <ShareButton title={`Quote: "${post.body_md.slice(0, 60)}"`} excerpt={post.body_md} />
       </div>
 
       {/* Prev / Next Navigation */}
@@ -73,12 +76,12 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         <PrevNextNav prev={prev} next={next} sectionLabel="quotes" />
       </div>
 
-      {/* Compact Subscribe Prompt */}
-      <div className="mt-16 text-left">
-        <SubscribeForm
-          layout="compact"
-          heading="Receive new quotes & lines"
-          helper="Delivered quietly when something new is shared."
+      {/* Reader Comments Section */}
+      <div className="text-left mt-8">
+        <CommentsSection
+          postId={post.id}
+          allowComments={post.allow_comments ?? true}
+          initialComments={comments}
         />
       </div>
     </article>

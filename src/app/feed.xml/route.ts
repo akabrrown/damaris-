@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 import { getEnv } from '@/lib/env';
+import { getPiecePath } from '@/lib/routing';
 
 export const revalidate = 300; // 5 minutes cache
 
 export async function GET() {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const env = getEnv();
 
   // Load latest 30 published items
@@ -28,11 +29,11 @@ export async function GET() {
   const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
   const rssItems = (posts || []).map((post) => {
-    const section = post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind;
-    const postUrl = `${siteUrl}/${section}/${post.slug}`;
+    const postUrl = `${siteUrl}${getPiecePath(post.kind, post.slug)}`;
     const pubDate = post.published_at ? new Date(post.published_at).toUTCString() : new Date().toUTCString();
     const title = post.title || post.body_md.slice(0, 50);
     const description = post.excerpt || post.body_md.slice(0, 300);
+
 
     return `
     <item>

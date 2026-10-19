@@ -1,9 +1,17 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookProgress, PublishStatus } from '@/lib/schemas';
-import { createBookAction, updateBookAction, publishBookAction, deleteBookAction } from '@/lib/actions/admin-actions';
+import {
+  createBookAction,
+  updateBookAction,
+  publishBookAction,
+  unpublishBookAction,
+  deleteBookAction,
+} from '@/lib/actions/admin-actions';
+import { MarkdownToolbar } from '@/components/markdown-toolbar';
+import { generateExcerpt } from '@/lib/excerpt';
 import { createClient } from '@/lib/supabase/client';
 
 interface BookEditorProps {
@@ -47,6 +55,9 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
   const [notifySubscribers, setNotifySubscribers] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [isPending, startTransition] = useTransition();
+
+  const synopsisRef = useRef<HTMLTextAreaElement | null>(null);
+  const excerptRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,6 +164,19 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
     });
   };
 
+  const handleUnpublish = async () => {
+    if (!confirm(`Are you sure you want to unpublish "${title}"? It will be removed from public view.`)) return;
+    startTransition(async () => {
+      try {
+        await unpublishBookAction(id);
+        setStatus('draft');
+        router.refresh();
+      } catch (err: unknown) {
+        setErrorMessage((err as Error).message);
+      }
+    });
+  };
+
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
     startTransition(async () => {
@@ -178,15 +202,27 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
           </span>
         </div>
 
-        {id && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="text-xs text-alert hover:underline cursor-pointer"
-          >
-            Delete Book
-          </button>
-        )}
+        <div className="flex items-center space-x-4">
+          {status === 'published' && slug && (
+            <a
+              href={`/books/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-moss hover:text-ink underline py-1"
+            >
+              View on site &rarr;
+            </a>
+          )}
+          {id && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="text-xs text-alert hover:underline cursor-pointer"
+            >
+              Delete Book
+            </button>
+          )}
+        </div>
       </div>
 
       {errorMessage && (
@@ -342,7 +378,13 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
           <label htmlFor="book-synopsis" className="block text-xs uppercase tracking-wider text-muted font-medium mb-1">
             Synopsis (Markdown) *
           </label>
+          <MarkdownToolbar
+            textareaRef={synopsisRef}
+            value={synopsisMd}
+            onChange={setSynopsisMd}
+          />
           <textarea
+            ref={synopsisRef}
             id="book-synopsis"
             rows={8}
             required
@@ -355,10 +397,30 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
 
         {/* Excerpt Markdown */}
         <div>
-          <label htmlFor="book-excerpt" className="block text-xs uppercase tracking-wider text-muted font-medium mb-1">
-            Excerpt (Optional)
-          </label>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <label htmlFor="book-excerpt" className="block text-xs uppercase tracking-wider text-muted font-medium">
+              Excerpt (Optional)
+            </label>
+            {synopsisMd.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  setExcerptMd(generateExcerpt(synopsisMd, 'story', 400));
+                }}
+                className="text-xs text-moss hover:text-ink hover:underline cursor-pointer"
+                title="Autogenerate excerpt teaser from synopsis"
+              >
+                ↻ Generate teaser from synopsis
+              </button>
+            )}
+          </div>
+          <MarkdownToolbar
+            textareaRef={excerptRef}
+            value={excerptMd}
+            onChange={setExcerptMd}
+          />
           <textarea
+            ref={excerptRef}
             id="book-excerpt"
             rows={10}
             value={excerptMd}
@@ -380,6 +442,17 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
           >
             {isPending ? 'Saving…' : 'Save Book'}
           </button>
+
+          {status === 'published' && id && (
+            <button
+              type="button"
+              onClick={handleUnpublish}
+              disabled={isPending}
+              className="px-6 py-3 bg-paper border border-line text-muted hover:text-ink hover:bg-paper-deep text-sm transition-colors cursor-pointer"
+            >
+              {isPending ? 'Updating…' : 'Unpublish to Draft'}
+            </button>
+          )}
 
           {status !== 'published' && id && (
             <button

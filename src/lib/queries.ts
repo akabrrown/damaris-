@@ -1,5 +1,5 @@
-import { createClient } from './supabase/server';
-import { Post, Book, SiteSettings } from './types';
+import { createPublicClient } from './supabase/server';
+import { Post, Book, SiteSettings, PostComment } from './types';
 import { PostKind } from './schemas';
 import { decodeCursor, encodeCursor } from './cursor';
 
@@ -8,7 +8,7 @@ import { decodeCursor, encodeCursor } from './cursor';
  */
 export async function getSiteSettings(): Promise<SiteSettings | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('site_settings')
       .select('id, site_title, tagline, author_name, about_md, about_photo_path, about_photo_alt, contact_email, social_links, updated_at')
@@ -28,7 +28,7 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
  */
 export async function getRecentPosts(limit = 6): Promise<Post[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('posts')
       .select('id, kind, slug, title, body_md, excerpt, attribution, status, published_at, created_at, updated_at')
@@ -60,7 +60,7 @@ export async function getPostsByKind(
   limit?: number
 ): Promise<PaginatedPostsResult> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const pageSize = limit || (kind === 'quote' ? 20 : 12);
 
     let query = supabase
@@ -108,14 +108,15 @@ export async function getPostsByKind(
  */
 export async function getPostBySlug(kind: PostKind, slug: string): Promise<Post | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
+    const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
     const { data, error } = await supabase
       .from('posts')
-      .select('id, kind, slug, title, body_md, excerpt, attribution, status, published_at, created_at, updated_at')
+      .select('id, kind, slug, title, body_md, excerpt, attribution, allow_comments, status, published_at, created_at, updated_at')
       .eq('status', 'published')
       .eq('kind', kind)
-      .eq('slug', slug)
-      .single();
+      .eq('slug', normalizedSlug)
+      .maybeSingle();
 
     if (error || !data) return null;
     return data as unknown as Post;
@@ -130,7 +131,7 @@ export async function getPostBySlug(kind: PostKind, slug: string): Promise<Post 
  */
 export async function getAdjacentPosts(kind: PostKind, currentPost: Post) {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     if (!currentPost.published_at) return { prev: null, next: null };
 
     // Prev (older)
@@ -176,7 +177,7 @@ export async function getAdjacentPosts(kind: PostKind, currentPost: Post) {
  */
 export async function getPublishedBooks(): Promise<Book[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('books')
       .select('id, slug, title, subtitle, synopsis_md, excerpt_md, cover_path, cover_alt, progress, purchase_url, release_date, sort_order, status, published_at, created_at, updated_at')
@@ -197,13 +198,14 @@ export async function getPublishedBooks(): Promise<Book[]> {
  */
 export async function getBookBySlug(slug: string): Promise<Book | null> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
+    const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
     const { data, error } = await supabase
       .from('books')
       .select('id, slug, title, subtitle, synopsis_md, excerpt_md, cover_path, cover_alt, progress, purchase_url, release_date, sort_order, status, published_at, created_at, updated_at')
       .eq('status', 'published')
-      .eq('slug', slug)
-      .single();
+      .eq('slug', normalizedSlug)
+      .maybeSingle();
 
     if (error || !data) return null;
     return data as unknown as Book;
@@ -212,3 +214,107 @@ export async function getBookBySlug(slug: string): Promise<Book | null> {
     return null;
   }
 }
+
+/**
+ * Loads approved comments for a specific post, ordered chronologically.
+ */
+export async function getPostComments(postId: string): Promise<PostComment[]> {
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('post_comments')
+      .select('id, post_id, author_name, author_email, content, status, created_at, updated_at')
+      .eq('post_id', postId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: true });
+
+    if (error || !data) return [];
+    return data as unknown as PostComment[];
+  } catch (err) {
+    console.error(`[Queries] Failed to load comments for post ${postId}:`, err);
+    return [];
+  }
+}
+
+export interface AdminCommentRow extends PostComment {
+  post_title: string | null;
+  post_slug: string | null;
+  post_kind: PostKind | null;
+}
+
+interface RawCommentQueryItem {
+  id: string;
+  post_id: string;
+  author_name: string;
+  author_email: string | null;
+  content: string;
+  status: PostComment['status'];
+  created_at: string;
+  updated_at: string;
+  posts:
+    | {
+        title: string | null;
+        slug: string | null;
+        kind: PostKind | null;
+      }
+    | {
+        title: string | null;
+        slug: string | null;
+        kind: PostKind | null;
+      }[]
+    | null;
+}
+
+/**
+ * Loads all comments across pieces for admin moderation.
+ */
+export async function getAdminComments(limit = 100): Promise<AdminCommentRow[]> {
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('post_comments')
+      .select(`
+        id,
+        post_id,
+        author_name,
+        author_email,
+        content,
+        status,
+        created_at,
+        updated_at,
+        posts:post_id (
+          title,
+          slug,
+          kind
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+
+    const items = data as unknown as RawCommentQueryItem[];
+    return items.map((item) => {
+      const post = Array.isArray(item.posts) ? item.posts[0] : item.posts;
+      return {
+        id: item.id,
+        post_id: item.post_id,
+        author_name: item.author_name,
+        author_email: item.author_email,
+        content: item.content,
+        status: item.status,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        post_title: post?.title || null,
+        post_slug: post?.slug || null,
+        post_kind: post?.kind || null,
+      };
+    });
+  } catch (err) {
+    console.error('[Queries] Failed to load admin comments:', err);
+    return [];
+  }
+}
+
+
+

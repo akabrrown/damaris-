@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 import { getEnv } from '@/lib/env';
+import { getPiecePath } from '@/lib/routing';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const env = getEnv();
   const baseUrl = env.NEXT_PUBLIC_SITE_URL;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -25,15 +26,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('kind, slug, updated_at')
     .eq('status', 'published');
 
-  const postRoutes: MetadataRoute.Sitemap = (posts || []).map((post) => {
-    const section = post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind;
-    return {
-      url: `${baseUrl}/${section}/${post.slug}`,
-      lastModified: new Date(post.updated_at),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    };
-  });
+  const postRoutes: MetadataRoute.Sitemap = (posts || []).map((post) => ({
+    url: `${baseUrl}${getPiecePath(post.kind, post.slug)}`,
+    lastModified: new Date(post.updated_at),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
 
   // Published books
   const { data: books } = await supabase

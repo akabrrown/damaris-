@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PostKind } from '@/lib/schemas';
+import { AdminPostRowActions } from '@/components/admin-post-row-actions';
 
 interface PageProps {
   searchParams: Promise<{ kind?: string; status?: string }>;
@@ -110,23 +111,13 @@ export default async function AdminPostsListPage({ searchParams }: PageProps) {
                 </Link>
               </div>
 
-              <div className="flex items-center space-x-3 text-xs">
-                {post.status === 'published' && (
-                  <Link
-                    href={`/${post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind}/${post.slug}`}
-                    target="_blank"
-                    className="text-moss hover:text-ink underline"
-                  >
-                    View &rarr;
-                  </Link>
-                )}
-                <Link
-                  href={`/admin/posts/${post.id}`}
-                  className="px-3 py-1 bg-sage/60 hover:bg-sage border border-ink text-ink font-medium"
-                >
-                  Edit
-                </Link>
-              </div>
+              <AdminPostRowActions
+                id={post.id}
+                kind={post.kind}
+                slug={post.slug}
+                title={post.title}
+                status={post.status}
+              />
             </div>
           ))}
         </div>

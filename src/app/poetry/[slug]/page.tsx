@@ -1,11 +1,11 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getPostBySlug, getAdjacentPosts } from '@/lib/queries';
+import { getPostBySlug, getAdjacentPosts, getPostComments } from '@/lib/queries';
 import { renderVerse, renderVerseLineHtml } from '@/lib/content-renderer';
 import { PrevNextNav } from '@/components/prev-next-nav';
 import { ShareButton } from '@/components/share-button';
-import { SubscribeForm } from '@/components/subscribe-form';
+import { CommentsSection } from '@/components/comments-section';
 
 export const revalidate = 3600;
 
@@ -32,7 +32,10 @@ export default async function PoemDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { prev, next } = await getAdjacentPosts('poem', post);
+  const [{ prev, next }, comments] = await Promise.all([
+    getAdjacentPosts('poem', post),
+    getPostComments(post.id),
+  ]);
   const stanzas = renderVerse(post.body_md);
 
   const formattedDate = post.published_at
@@ -72,20 +75,18 @@ export default async function PoemDetailPage({ params }: PageProps) {
 
       {/* Share Button */}
       <div className="mt-12 pt-6 border-t border-line/60 flex items-center justify-between">
-        <ShareButton title={post.title || 'Poem'} />
+        <ShareButton title={post.title || 'Poem'} excerpt={post.excerpt || undefined} />
       </div>
 
       {/* Prev / Next Navigation */}
       <PrevNextNav prev={prev} next={next} sectionLabel="poems" />
 
-      {/* Compact Subscribe Prompt */}
-      <div className="mt-16">
-        <SubscribeForm
-          layout="compact"
-          heading="Read future poems"
-          helper="Receive a quiet email whenever a new piece is published."
-        />
-      </div>
+      {/* Comments / Reflections Section */}
+      <CommentsSection
+        postId={post.id}
+        allowComments={post.allow_comments ?? true}
+        initialComments={comments}
+      />
     </article>
   );
 }

@@ -200,6 +200,33 @@ export default async function AdminDashboardPage() {
             )}
           </div>
         </section>
+
+        {/* System & Security Audit Section */}
+        <section aria-labelledby="audit-heading" className="lg:col-span-12">
+          <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h2 id="audit-heading" className="text-xs uppercase tracking-wider text-muted font-semibold">
+              Security &amp; System Audit
+            </h2>
+            <Link href="/admin/audit" className="text-xs text-moss hover:text-ink underline">
+              View complete audit log &rarr;
+            </Link>
+          </div>
+
+          <div className="p-5 border border-line bg-paper flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-sm text-ink font-medium">Activity Logging &amp; Access Ledger</p>
+              <p className="text-xs text-muted">
+                Review verified subscriber events, content publish/unpublish records, and administrative security trails.
+              </p>
+            </div>
+            <Link
+              href="/admin/audit"
+              className="px-4 py-2 border border-ink bg-sage hover:bg-sage/80 text-ink text-xs font-medium whitespace-nowrap"
+            >
+              Open Audit Trail &rarr;
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { calculateReadingTime } from '@/lib/reading-time';
+import { getPiecePath } from '@/lib/routing';
 
 interface EntryRowProps {
   post: Post;
@@ -9,7 +10,8 @@ interface EntryRowProps {
 }
 
 export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
-  const href = `/${post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind}/${post.slug}`;
+  const href = getPiecePath(post.kind, post.slug);
+
 
   const formattedDate = post.published_at
     ? new Date(post.published_at).toLocaleDateString('en-GB', {

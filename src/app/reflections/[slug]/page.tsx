@@ -1,12 +1,12 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { getPostBySlug, getAdjacentPosts } from '@/lib/queries';
+import { getPostBySlug, getAdjacentPosts, getPostComments } from '@/lib/queries';
 import { sanitizeMarkdown } from '@/lib/content-renderer';
 import { calculateReadingTime } from '@/lib/reading-time';
 import { PrevNextNav } from '@/components/prev-next-nav';
 import { ShareButton } from '@/components/share-button';
-import { SubscribeForm } from '@/components/subscribe-form';
+import { CommentsSection } from '@/components/comments-section';
 
 export const revalidate = 3600;
 
@@ -33,7 +33,10 @@ export default async function ReflectionDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { prev, next } = await getAdjacentPosts('reflection', post);
+  const [{ prev, next }, comments] = await Promise.all([
+    getAdjacentPosts('reflection', post),
+    getPostComments(post.id),
+  ]);
   const readingTime = calculateReadingTime(post.body_md);
   const bodyHtml = sanitizeMarkdown(post.body_md);
 
@@ -74,20 +77,18 @@ export default async function ReflectionDetailPage({ params }: PageProps) {
 
       {/* Share Button */}
       <div className="mt-12 pt-6 border-t border-line/60 flex items-center justify-between">
-        <ShareButton title={post.title || 'Reflection'} />
+        <ShareButton title={post.title || 'Reflection'} excerpt={post.excerpt || undefined} />
       </div>
 
       {/* Prev / Next Navigation */}
       <PrevNextNav prev={prev} next={next} sectionLabel="reflections" />
 
-      {/* Compact Subscribe Prompt */}
-      <div className="mt-16">
-        <SubscribeForm
-          layout="compact"
-          heading="Read future reflections"
-          helper="Receive a quiet email whenever a new piece is published."
-        />
-      </div>
+      {/* Reader Comments Section */}
+      <CommentsSection
+        postId={post.id}
+        allowComments={post.allow_comments ?? true}
+        initialComments={comments}
+      />
     </article>
   );
 }

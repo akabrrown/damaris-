@@ -1,7 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { retryFailedDeliveriesAction, sendNotificationNowAction } from '@/lib/actions/notification-actions';
+import { NotificationActionButtons } from '@/components/notification-action-buttons';
 
 export default async function AdminNotificationsPage() {
   const supabase = await createClient();
@@ -106,39 +106,11 @@ export default async function AdminNotificationsPage() {
                       : 'Job is pending or processing in background.'}
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    {failedCount > 0 && (
-                      <form
-                        action={async () => {
-                          'use server';
-                          await retryFailedDeliveriesAction(notif.id);
-                        }}
-                      >
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-sage hover:bg-sage/80 border border-ink text-ink text-xs font-medium cursor-pointer"
-                        >
-                          Retry {failedCount} Failed Deliveries
-                        </button>
-                      </form>
-                    )}
-
-                    {notif.status === 'pending' && (
-                      <form
-                        action={async () => {
-                          'use server';
-                          await sendNotificationNowAction(notif.id);
-                        }}
-                      >
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-sage hover:bg-sage/80 border border-ink text-ink text-xs font-medium cursor-pointer"
-                        >
-                          Send Now
-                        </button>
-                      </form>
-                    )}
-                  </div>
+                  <NotificationActionButtons
+                    id={notif.id}
+                    status={notif.status}
+                    failedCount={failedCount}
+                  />
                 </div>
               </div>
             );

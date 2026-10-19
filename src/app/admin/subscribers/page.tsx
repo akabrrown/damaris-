@@ -1,7 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { removeSubscriberAction } from '@/lib/actions/admin-actions';
+import { DeleteSubscriberButton } from '@/components/delete-subscriber-button';
 
 interface PageProps {
   searchParams: Promise<{ q?: string; status?: string }>;
@@ -144,21 +144,7 @@ export default async function AdminSubscribersPage({ searchParams }: PageProps) 
                     {sub.confirmed_at ? new Date(sub.confirmed_at).toLocaleDateString() : '—'}
                   </td>
                   <td className="p-4 text-right">
-                    <form
-                      action={async () => {
-                        'use server';
-                        await removeSubscriberAction(sub.id);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className="text-xs text-alert hover:underline cursor-pointer min-h-[32px] px-2"
-                        title={`Permanently erase ${sub.email}`}
-                        aria-label={`Permanently delete subscriber ${sub.email}`}
-                      >
-                        Delete
-                      </button>
-                    </form>
+                    <DeleteSubscriberButton id={sub.id} email={sub.email} />
                   </td>
                 </tr>
               ))}

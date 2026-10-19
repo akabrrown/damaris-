@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { PostKind } from '@/lib/schemas';
 import { getPostsByKind } from '@/lib/queries';
+import { getSectionPath } from '@/lib/routing';
 import { EntryRow } from './entry-row';
 
 interface SectionIndexProps {
@@ -13,7 +14,8 @@ interface SectionIndexProps {
 
 export async function SectionIndex({ kind, title, description, cursor }: SectionIndexProps) {
   const { items, nextCursor } = await getPostsByKind(kind, cursor);
-  const basePath = `/${kind === 'story' ? 'stories' : kind === 'reflection' ? 'reflections' : kind}`;
+  const basePath = getSectionPath(kind);
+
 
   return (
     <div className="max-w-[760px] mx-auto py-4 sm:py-8">

@@ -5,6 +5,7 @@ import {
   outdentLinesInTextarea,
 } from '@/components/markdown-toolbar';
 import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
+import { generateExcerpt } from '@/lib/excerpt';
 
 describe('Editor Formatting Tools & Public Parity Pipeline', () => {
   it('wraps selected text with bold markdown markers', () => {
@@ -95,5 +96,17 @@ describe('Editor Formatting Tools & Public Parity Pipeline', () => {
     expect(html).toContain('<li>Point one</li>');
     expect(html).toContain('<li>Point two</li>');
     expect(html).toContain('<blockquote>');
+  });
+
+  it('autogenerates clean verse excerpts from raw poem markdown', () => {
+    const poem = '# Title\n\nI stepped into the quiet dawn,\nBefore the stars were completely gone;\n\nA second stanza follows here.';
+    const excerpt = generateExcerpt(poem, 'poem');
+    expect(excerpt).toBe('I stepped into the quiet dawn,\nBefore the stars were completely gone;');
+  });
+
+  it('autogenerates clean prose excerpts from story markdown without headers or markdown markers', () => {
+    const story = '### Prologue\n\nIt was a **cold** and misty morning on the hill. The village bells were ringing in the distance.';
+    const excerpt = generateExcerpt(story, 'story');
+    expect(excerpt).toBe('It was a cold and misty morning on the hill. The village bells were ringing in the distance.');
   });
 });

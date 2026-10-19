@@ -5,7 +5,6 @@ import { Metadata } from 'next';
 import { getBookBySlug } from '@/lib/queries';
 import { sanitizeMarkdown } from '@/lib/content-renderer';
 import { ShareButton } from '@/components/share-button';
-import { SubscribeForm } from '@/components/subscribe-form';
 
 export const revalidate = 3600;
 
@@ -130,15 +129,6 @@ export default async function BookDetailPage({ params }: PageProps) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Subscribe Prompt */}
-      <div className="mt-16 pt-8 border-t border-line">
-        <SubscribeForm
-          layout="compact"
-          heading="Stay updated on new releases"
-          helper="Receive news when new books, chapters, or editions are announced."
-        />
       </div>
     </article>
   );

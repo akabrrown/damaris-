@@ -4,7 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { postInputSchema, bookInputSchema, siteSettingsSchema, PostInput, BookInput, SiteSettingsInput } from '@/lib/schemas';
 import { generateSlug } from '@/lib/slug';
+import { generateExcerpt } from '@/lib/excerpt';
+import { recordAuditLog } from '@/lib/audit';
 import { getEnv } from '@/lib/env';
+import { getSectionPath, getPiecePath } from '@/lib/routing';
+
 
 /**
  * Asserts that the currently signed-in user is an authorized admin.
@@ -44,8 +48,9 @@ export async function createPostAction(input: PostInput) {
       slug,
       title: validated.title || null,
       body_md: validated.body_md,
-      excerpt: validated.excerpt || null,
+      excerpt: validated.excerpt || generateExcerpt(validated.body_md, validated.kind) || null,
       attribution: validated.attribution || null,
+      allow_comments: validated.allow_comments ?? true,
       status: 'draft',
     })
     .select('id, slug, kind')
@@ -56,6 +61,13 @@ export async function createPostAction(input: PostInput) {
   }
 
   revalidatePath('/admin/posts');
+  await recordAuditLog({
+    action: 'post.created',
+    resource_type: 'post',
+    resource_id: data.id,
+    description: `Created draft ${validated.kind}: "${validated.title || 'Untitled'}"`,
+    metadata: { kind: validated.kind, slug },
+  });
   return data;
 }
 
@@ -76,8 +88,14 @@ export async function updatePostAction(id: string, input: Partial<PostInput>) {
   const updateData: Record<string, unknown> = {};
   if (input.title !== undefined) updateData.title = input.title;
   if (input.body_md !== undefined) updateData.body_md = input.body_md;
-  if (input.excerpt !== undefined) updateData.excerpt = input.excerpt;
+  if (input.excerpt !== undefined) {
+    updateData.excerpt = input.excerpt || (input.body_md ? generateExcerpt(input.body_md, existing.kind) : null);
+  } else if (input.body_md !== undefined) {
+    // If post currently has no excerpt, autogenerate from updated body
+    updateData.excerpt = generateExcerpt(input.body_md, existing.kind) || null;
+  }
   if (input.attribution !== undefined) updateData.attribution = input.attribution;
+  if (input.allow_comments !== undefined) updateData.allow_comments = input.allow_comments;
 
   // Slug can only be changed before first publish
   if (input.slug && existing.status === 'draft') {
@@ -95,8 +113,8 @@ export async function updatePostAction(id: string, input: Partial<PostInput>) {
 
   if (existing.status === 'published') {
     revalidatePath('/');
-    revalidatePath(`/${existing.kind === 'story' ? 'stories' : existing.kind === 'reflection' ? 'reflections' : existing.kind}`);
-    revalidatePath(`/${existing.kind === 'story' ? 'stories' : existing.kind === 'reflection' ? 'reflections' : existing.kind}/${existing.slug}`);
+    revalidatePath(getSectionPath(existing.kind));
+    revalidatePath(getPiecePath(existing.kind, existing.slug));
   }
 
   revalidatePath('/admin/posts');
@@ -105,6 +123,12 @@ export async function updatePostAction(id: string, input: Partial<PostInput>) {
 
 export async function publishPostAction(id: string, notify = true) {
   const { supabase } = await requireAdmin();
+
+  const { data: post } = await supabase
+    .from('posts')
+    .select('kind, slug')
+    .eq('id', id)
+    .single();
 
   // Calls database function publish_post(p_id, p_notify) in a single transaction
   const { data: notificationId, error } = await supabase.rpc('publish_post', {
@@ -128,9 +152,21 @@ export async function publishPostAction(id: string, notify = true) {
 
   // Revalidate public caches
   revalidatePath('/');
+  if (post) {
+    revalidatePath(getSectionPath(post.kind));
+    revalidatePath(getPiecePath(post.kind, post.slug));
+  }
   revalidatePath('/feed.xml');
   revalidatePath('/sitemap.xml');
   revalidatePath('/admin/posts');
+
+  await recordAuditLog({
+    action: 'post.published',
+    resource_type: 'post',
+    resource_id: id,
+    description: `Published post (notify: ${notify})`,
+    metadata: { notify, notificationId },
+  });
 
   return { success: true, notificationId };
 }
@@ -150,10 +186,18 @@ export async function unpublishPostAction(id: string) {
   }
 
   revalidatePath('/');
-  revalidatePath(`/${post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind}`);
-  revalidatePath(`/${post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind}/${post.slug}`);
+  revalidatePath(getSectionPath(post.kind));
+  revalidatePath(getPiecePath(post.kind, post.slug));
   revalidatePath('/feed.xml');
+  revalidatePath('/sitemap.xml');
   revalidatePath('/admin/posts');
+
+  await recordAuditLog({
+    action: 'post.unpublished',
+    resource_type: 'post',
+    resource_id: id,
+    description: `Unpublished post back to draft`,
+  });
 
   return { success: true };
 }
@@ -174,11 +218,22 @@ export async function deletePostAction(id: string) {
 
   if (post && post.status === 'published') {
     revalidatePath('/');
-    revalidatePath(`/${post.kind === 'story' ? 'stories' : post.kind === 'reflection' ? 'reflections' : post.kind}`);
+    revalidatePath(getSectionPath(post.kind));
+    revalidatePath(getPiecePath(post.kind, post.slug));
     revalidatePath('/feed.xml');
+    revalidatePath('/sitemap.xml');
   }
 
+
   revalidatePath('/admin/posts');
+
+  await recordAuditLog({
+    action: 'post.deleted',
+    resource_type: 'post',
+    resource_id: id,
+    description: `Permanently deleted post`,
+  });
+
   return { success: true };
 }
 
@@ -261,6 +316,35 @@ export async function publishBookAction(id: string, notify = true) {
   return { success: true, notificationId };
 }
 
+export async function unpublishBookAction(id: string) {
+  const { supabase } = await requireAdmin();
+
+  const { data: book, error } = await supabase
+    .from('books')
+    .update({ status: 'draft' })
+    .eq('id', id)
+    .select('slug')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to unpublish book: ${error.message}`);
+  }
+
+  revalidatePath('/');
+  revalidatePath('/books');
+  if (book?.slug) revalidatePath(`/books/${book.slug}`);
+  revalidatePath('/admin/books');
+
+  await recordAuditLog({
+    action: 'book.unpublished',
+    resource_type: 'book',
+    resource_id: id,
+    description: `Unpublished book back to draft`,
+  });
+
+  return { success: true };
+}
+
 export async function deleteBookAction(id: string) {
   const { supabase } = await requireAdmin();
 
@@ -275,6 +359,14 @@ export async function deleteBookAction(id: string) {
 
   revalidatePath('/books');
   revalidatePath('/admin/books');
+
+  await recordAuditLog({
+    action: 'book.deleted',
+    resource_type: 'book',
+    resource_id: id,
+    description: `Permanently deleted book`,
+  });
+
   return { success: true };
 }
 
@@ -307,6 +399,14 @@ export async function updateSiteSettingsAction(input: SiteSettingsInput) {
   revalidatePath('/');
   revalidatePath('/about');
   revalidatePath('/admin/about');
+
+  await recordAuditLog({
+    action: 'settings.updated',
+    resource_type: 'settings',
+    description: `Updated site settings and author profile`,
+    metadata: { site_title: validated.site_title, author_name: validated.author_name },
+  });
+
   return { success: true };
 }
 
@@ -328,6 +428,14 @@ export async function removeSubscriberAction(id: string) {
   }
 
   revalidatePath('/admin/subscribers');
+
+  await recordAuditLog({
+    action: 'subscriber.deleted',
+    resource_type: 'subscriber',
+    resource_id: id,
+    description: `Permanently erased subscriber record`,
+  });
+
   return { success: true };
 }
 
@@ -339,24 +447,50 @@ async function enqueueNotificationJob(notificationId: string) {
   const env = getEnv();
   const targetUrl = `${env.NEXT_PUBLIC_SITE_URL}/api/jobs/notify`;
 
-  if (!env.QSTASH_TOKEN || env.QSTASH_TOKEN.includes('dummy')) {
-    console.log(`[Dev Job Enqueue] Notification job queued locally for ID: ${notificationId} -> ${targetUrl}`);
+  const isLocalhost =
+    env.NEXT_PUBLIC_SITE_URL.includes('localhost') ||
+    env.NEXT_PUBLIC_SITE_URL.includes('127.0.0.1');
+
+  const isQStashConfigured =
+    Boolean(env.QSTASH_TOKEN) &&
+    !env.QSTASH_TOKEN.includes('dummy') &&
+    !env.QSTASH_TOKEN.startsWith('gQAAAAAA');
+
+  if (isLocalhost || !isQStashConfigured) {
+    console.log(`[Notification Engine] Processing job directly in-process for notification: ${notificationId}`);
+    try {
+      const { processNotificationDeliveries } = await import('@/lib/notification-worker');
+      await processNotificationDeliveries(notificationId);
+    } catch (err) {
+      console.error('[Notification Engine] Direct processing failed:', err);
+    }
     return;
   }
 
-  // Dispatch to Upstash QStash
-  const res = await fetch(`https://qstash.upstash.io/v2/publish/${encodeURIComponent(targetUrl)}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${env.QSTASH_TOKEN}`,
-      'Content-Type': 'application/json',
-      'Upstash-Retries': '3',
-    },
-    body: JSON.stringify({ notificationId }),
-  });
+  try {
+    const res = await fetch(`https://qstash.upstash.io/v2/publish/${encodeURIComponent(targetUrl)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.QSTASH_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Upstash-Retries': '3',
+      },
+      body: JSON.stringify({ notificationId }),
+    });
 
-  if (!res.ok) {
+    if (res.ok) return;
+
     const text = await res.text();
-    throw new Error(`QStash enqueue failed (${res.status}): ${text}`);
+    console.warn(`[Notification Engine] QStash enqueue failed (${res.status}): ${text}. Falling back to in-process delivery.`);
+  } catch (err) {
+    console.warn('[Notification Engine] QStash dispatch error:', err);
+  }
+
+  try {
+    const { processNotificationDeliveries } = await import('@/lib/notification-worker');
+    await processNotificationDeliveries(notificationId);
+  } catch (err) {
+    console.error('[Notification Engine] Fallback direct processing failed:', err);
   }
 }
+

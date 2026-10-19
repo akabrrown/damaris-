@@ -34,6 +34,7 @@ export const postInputSchema = z
     attribution: z.string().max(120).nullable().optional(),
     status: publishStatusSchema.default('draft'),
     notify: z.boolean().default(true),
+    allow_comments: z.boolean().default(true),
   })
   .superRefine((data, ctx) => {
     if (data.kind !== 'quote' && (!data.title || data.title.trim() === '')) {
@@ -127,3 +128,27 @@ export const siteSettingsSchema = z
   });
 
 export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
+
+export const commentInputSchema = z.object({
+  postId: z.string().uuid(),
+  authorName: z
+    .string()
+    .trim()
+    .min(1, 'Please enter your name.')
+    .max(80, 'Name must be at most 80 characters.'),
+  authorEmail: z
+    .string()
+    .trim()
+    .email('Please provide a valid email address.')
+    .max(254)
+    .or(z.literal(''))
+    .optional(),
+  content: z
+    .string()
+    .trim()
+    .min(1, 'Comment cannot be empty.')
+    .max(2000, 'Comment must be at most 2,000 characters.'),
+  website: z.string().max(0).optional(), // honeypot
+});
+
+export type CommentInput = z.infer<typeof commentInputSchema>;

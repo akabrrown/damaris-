@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateSiteSettingsAction } from '@/lib/actions/admin-actions';
+import { MarkdownToolbar } from '@/components/markdown-toolbar';
 import { createClient } from '@/lib/supabase/client';
 import { SocialLink } from '@/lib/types';
 
@@ -35,6 +36,7 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isPending, startTransition] = useTransition();
+  const aboutBioRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -242,7 +244,13 @@ export function SettingsEditor({ initialSettings }: SettingsEditorProps) {
           <label htmlFor="about-bio" className="block text-xs uppercase tracking-wider text-muted font-medium mb-1">
             Author Biography (Markdown)
           </label>
+          <MarkdownToolbar
+            textareaRef={aboutBioRef}
+            value={aboutMd}
+            onChange={setAboutMd}
+          />
           <textarea
+            ref={aboutBioRef}
             id="about-bio"
             rows={10}
             value={aboutMd}

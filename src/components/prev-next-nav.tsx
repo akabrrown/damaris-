@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { getPiecePath } from '@/lib/routing';
 
 interface NavItem {
   title: string | null;
@@ -16,8 +17,8 @@ interface PrevNextNavProps {
 export function PrevNextNav({ prev, next, sectionLabel }: PrevNextNavProps) {
   if (!prev && !next) return null;
 
-  const getHref = (item: NavItem) =>
-    `/${item.kind === 'story' ? 'stories' : item.kind === 'reflection' ? 'reflections' : item.kind}/${item.slug}`;
+  const getHref = (item: NavItem) => getPiecePath(item.kind, item.slug);
+
 
   return (
     <nav aria-label={`More ${sectionLabel}`} className="mt-12 pt-8 border-t border-line grid grid-cols-1 sm:grid-cols-2 gap-6">

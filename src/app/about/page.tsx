@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { Metadata } from 'next';
 import { getSiteSettings } from '@/lib/queries';
 import { sanitizeMarkdown } from '@/lib/content-renderer';
-import { SubscribeForm } from '@/components/subscribe-form';
 
 export const metadata: Metadata = {
   title: 'About the Author',
@@ -97,15 +96,6 @@ export default async function AboutPage() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Subscribe Prompt */}
-      <div className="mt-16 pt-8 border-t border-line">
-        <SubscribeForm
-          layout="compact"
-          heading="Stay in touch"
-          helper={`Receive an email whenever ${authorName} publishes a new poem, story, or reflection.`}
-        />
       </div>
     </article>
   );

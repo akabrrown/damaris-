@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { recordAuditLog } from '@/lib/audit';
 
 export async function GET() {
   const supabase = await createClient();
@@ -24,7 +25,14 @@ export async function GET() {
     return new NextResponse('Failed to export subscribers', { status: 500 });
   }
 
-  console.log(`[Admin Audit] Admin ${user.email} exported ${subscribers.length} subscribers at ${new Date().toISOString()}`);
+  await recordAuditLog({
+    action: 'subscribers.exported',
+    resource_type: 'subscriber',
+    description: `Exported ${subscribers.length} subscribers to CSV`,
+    metadata: { count: subscribers.length },
+    actor_email: user.email || 'admin',
+    actor_id: user.id,
+  });
 
   const headers = ['Email', 'Status', 'Consented At', 'Confirmed At', 'Unsubscribed At', 'Source'];
   const rows = subscribers.map((s) => [
