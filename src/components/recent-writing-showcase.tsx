@@ -128,20 +128,21 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
         <div className="space-y-8">
           {/* Featured Lead Editorial Card */}
           {leadPiece && (
-            <article className="border border-line hover:border-ink bg-paper hover:bg-paper-deep/40 transition-all duration-300 relative group p-6 sm:p-10 shadow-2xs">
+            <article className="border border-ink bg-sage hover:bg-sage/85 text-ink transition-all duration-300 relative group p-6 sm:p-10 shadow-xs">
               <Link
                 href={getPiecePath(leadPiece.kind, leadPiece.slug)}
-                className="block focus-visible:outline-2 focus-visible:outline-moss focus-visible:outline-offset-4"
+                className="block focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4"
               >
                 {/* Meta Badge Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-wider text-muted mb-4 pb-3 border-b border-line/40">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-wider text-ink/80 mb-4 pb-3 border-b border-ink/20">
                   <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-sage" aria-hidden="true" />
-                    <span className="font-medium text-ink">{KIND_METADATA[leadPiece.kind].singular}</span>
-                    <span className="text-line" aria-hidden="true">&bull;</span>
-                    <span className="text-muted/80">Featured piece</span>
+                    <span className="px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-sans font-semibold tracking-widest uppercase">
+                      {KIND_METADATA[leadPiece.kind].singular}
+                    </span>
+                    <span className="text-ink/40" aria-hidden="true">&bull;</span>
+                    <span className="text-ink/80 font-medium">Featured piece</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-muted">
+                  <div className="flex items-center space-x-3 text-ink/80 font-medium">
                     <time dateTime={leadPiece.published_at || ''}>{formatDate(leadPiece.published_at)}</time>
                     {(leadPiece.kind === 'story' || leadPiece.kind === 'reflection') && (
                       <>
@@ -154,27 +155,27 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
 
                 {/* Content */}
                 <div className="max-w-[760px] space-y-4">
-                  <h3 className="font-serif text-2xl sm:text-4xl text-ink font-normal leading-tight tracking-tight group-hover:text-moss transition-colors">
+                  <h3 className="font-serif text-2xl sm:text-4xl text-ink font-normal leading-tight tracking-tight group-hover:underline group-hover:underline-offset-4 transition-all">
                     {leadPiece.title}
                   </h3>
 
                   {leadPiece.kind === 'quote' ? (
-                    <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed border-l-2 border-sage pl-4 my-4">
+                    <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed border-l-2 border-ink pl-4 my-4">
                       &ldquo;{leadPiece.body_md}&rdquo;
                     </blockquote>
                   ) : (
-                    <p className="font-serif text-lg sm:text-xl text-muted/90 leading-relaxed italic line-clamp-3">
+                    <p className="font-serif text-lg sm:text-xl text-ink/90 leading-relaxed italic line-clamp-3">
                       &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
                     </p>
                   )}
                 </div>
 
                 {/* Read Action */}
-                <div className="mt-6 pt-4 flex items-center justify-between text-sm font-medium text-moss">
-                  <span className="inline-flex items-center gap-1.5 group-hover:text-ink transition-colors font-serif italic text-base">
+                <div className="mt-6 pt-4 border-t border-ink/20 flex items-center justify-between text-sm font-medium text-ink">
+                  <span className="inline-flex items-center gap-1.5 group-hover:underline font-serif italic text-base">
                     Read piece <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
                   </span>
-                  <span className="text-xs uppercase tracking-widest text-muted/60 font-sans">
+                  <span className="text-xs uppercase tracking-widest text-ink/75 font-sans font-medium">
                     Caroline Damaris Donkor
                   </span>
                 </div>
@@ -194,48 +195,48 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                 return (
                   <article
                     key={piece.id}
-                    className="border border-line hover:border-ink bg-paper hover:bg-paper-deep/60 p-6 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 hover:shadow-[0_8px_24px_-6px_rgba(35,39,32,0.08)]"
+                    className="border border-ink bg-sage hover:bg-sage/85 text-ink p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 hover:shadow-xs"
                   >
                     <Link
                       href={href}
-                      className="block focus-visible:outline-2 focus-visible:outline-moss focus-visible:outline-offset-4 flex-1 flex flex-col justify-between"
+                      className="block focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4 flex-1 flex flex-col justify-between"
                     >
                       <div>
                         {/* Top Category Tag + Date */}
-                        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted mb-3 pb-2 border-b border-line/40">
-                          <span className="inline-flex items-center px-2 py-0.5 bg-sage-soft border border-line/60 text-ink text-[10px] font-medium tracking-widest">
+                        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-ink/80 mb-3 pb-2 border-b border-ink/20">
+                          <span className="inline-flex items-center px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-semibold tracking-widest">
                             {piece.kind}
                           </span>
-                          <time dateTime={piece.published_at || ''} className="text-[11px]">
+                          <time dateTime={piece.published_at || ''} className="text-[11px] font-medium">
                             {formatDate(piece.published_at)}
                           </time>
                         </div>
 
                         {/* Title */}
-                        <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug mb-3 group-hover:text-moss transition-colors">
+                        <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug mb-3 group-hover:underline group-hover:underline-offset-2 transition-all">
                           {piece.title}
                         </h3>
 
                         {/* Excerpt by Kind */}
                         {piece.kind === 'quote' ? (
-                          <blockquote className="font-serif italic text-base sm:text-lg text-ink/90 leading-relaxed border-l-2 border-sage/80 pl-3 my-2">
+                          <blockquote className="font-serif italic text-base sm:text-lg text-ink leading-relaxed border-l-2 border-ink pl-3 my-2">
                             &ldquo;{piece.body_md}&rdquo;
                           </blockquote>
                         ) : piece.kind === 'poem' ? (
-                          <div className="font-serif italic text-base text-muted/90 leading-relaxed mb-4 whitespace-pre-line border-l border-line/80 pl-3">
+                          <div className="font-serif italic text-base text-ink/90 leading-relaxed mb-4 whitespace-pre-line border-l border-ink/30 pl-3">
                             &ldquo;{piece.excerpt || piece.body_md.split('\n').slice(0, 3).join('\n')}&rdquo;
                           </div>
                         ) : (
-                          <p className="font-serif text-sm sm:text-base text-muted leading-relaxed mb-4 line-clamp-3">
+                          <p className="font-serif text-sm sm:text-base text-ink/85 leading-relaxed mb-4 line-clamp-3">
                             {piece.excerpt || piece.body_md.slice(0, 160)}
                           </p>
                         )}
                       </div>
 
                       {/* Footer Info */}
-                      <div className="mt-4 pt-3 border-t border-line/50 flex items-center justify-between text-xs text-muted">
+                      <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 font-medium">
                         <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : 'Caroline')}</span>
-                        <span className="inline-flex items-center text-moss group-hover:text-ink font-medium transition-colors">
+                        <span className="inline-flex items-center text-ink group-hover:underline font-medium">
                           Read &rarr;
                         </span>
                       </div>
