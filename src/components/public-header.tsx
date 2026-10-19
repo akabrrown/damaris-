@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -21,6 +22,28 @@ export interface PublicHeaderProps {
 export function PublicHeader({ authorName }: PublicHeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Auto-close mobile menu when user scrolls on smaller screens
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const startY = window.scrollY;
+    const handleScroll = () => {
+      if (Math.abs(window.scrollY - startY) > 12) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [mobileMenuOpen]);
+
+  // Auto-close on page navigation
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   if (pathname?.startsWith('/admin')) {
     return null;
@@ -68,19 +91,23 @@ export function PublicHeader({ authorName }: PublicHeaderProps) {
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-ink border border-line bg-paper"
+          className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 text-ink border border-line bg-paper hover:bg-paper-deep transition-colors focus-visible:outline-2 focus-visible:outline-moss cursor-pointer"
           aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-nav"
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
         >
-          <span className="font-sans text-sm font-medium">
-            {mobileMenuOpen ? 'Close' : 'Menu'}
-          </span>
+          {mobileMenuOpen ? (
+            <X className="w-5 h-5 text-ink" aria-hidden="true" />
+          ) : (
+            <Menu className="w-5 h-5 text-ink" aria-hidden="true" />
+          )}
         </button>
       </div>
 
       {/* Mobile Navigation List (expandable list, not an off-canvas drawer) */}
       {mobileMenuOpen && (
         <nav
+          id="mobile-nav"
           aria-label="Mobile Navigation"
           className="md:hidden border-t border-line bg-paper px-4 py-4 space-y-2"
         >
