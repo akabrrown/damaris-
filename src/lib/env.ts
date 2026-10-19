@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default('https://ozqllpgsshutwteyjfqw.supabase.co'),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cWxscGdzc2h1dHd0ZXlqZnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNDkwNzQsImV4cCI6MjEwNzYyNTA3NH0.A-IHocbjctoZ9ieU_CWwYfBPyrpmSJ9h2zr-CKd3X4E'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96cWxscGdzc2h1dHd0ZXlqZnF3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MjA0OTA3NCwiZXhwIjoyMTA3NjI1MDc0fQ.aHHh2s3iyOMuRtS1fTUlHBGuJxjE57SisCu16JIUnGk'),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ozqllpgsshutwteyjfqw.supabase.co'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional().default(process.env.SUPABASE_SERVICE_ROLE_KEY || ''),
   RESEND_API_KEY: z.string().min(1).default('re_dummy_key'),
   RESEND_WEBHOOK_SECRET: z.string().min(1).optional().default('whsec_dummy'),
   MAIL_FROM: z.string().min(1).default('Caroline Damaris Donkor <noreply@carolinedamaris.com>'),

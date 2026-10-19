@@ -7,9 +7,14 @@ import { getEnv } from '@/lib/env';
  */
 export function createAdminClient() {
   const env = getEnv();
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations.');
+  }
+
   return createSupabaseClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceKey,
     {
       auth: {
         autoRefreshToken: false,

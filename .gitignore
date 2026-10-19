@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local maintenance scripts & sensitive tools
+/scripts/
+/scratch/
+*.pem
+*.key
