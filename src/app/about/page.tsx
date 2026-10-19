@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Biography, background, and contact details.',
 };
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function AboutPage() {
   const settings = await getSiteSettings();

@@ -118,7 +118,11 @@ export async function getPostBySlug(kind: PostKind, slug: string): Promise<Post 
       .eq('slug', normalizedSlug)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      console.error(`[Queries] Supabase error in getPostBySlug (${kind}/${slug}):`, error);
+      return null;
+    }
+    if (!data) return null;
     return data as unknown as Post;
   } catch (err) {
     console.error(`[Queries] Failed to load post ${kind}/${slug}:`, err);

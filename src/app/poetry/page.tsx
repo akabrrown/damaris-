@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Poems, verses, and lyrical lines.',
 };
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   searchParams: Promise<{ cursor?: string }>;

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getSiteSettings, getRecentPosts } from '@/lib/queries';
 import { EntryRow } from '@/components/entry-row';
 
-export const revalidate = 3600; // 1 hour fallback; on-demand revalidated on publish
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const [settings, recentPosts] = await Promise.all([

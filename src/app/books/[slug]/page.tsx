@@ -6,7 +6,7 @@ import { getBookBySlug } from '@/lib/queries';
 import { sanitizeMarkdown } from '@/lib/content-renderer';
 import { ShareButton } from '@/components/share-button';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;

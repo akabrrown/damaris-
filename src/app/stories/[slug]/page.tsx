@@ -8,7 +8,7 @@ import { PrevNextNav } from '@/components/prev-next-nav';
 import { ShareButton } from '@/components/share-button';
 import { CommentsSection } from '@/components/comments-section';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
