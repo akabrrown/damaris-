@@ -160,11 +160,11 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                   </h3>
 
                   {leadPiece.kind === 'quote' ? (
-                    <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed border-l-2 border-ink pl-4 my-4">
+                    <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-4">
                       &ldquo;{leadPiece.body_md}&rdquo;
                     </blockquote>
                   ) : (
-                    <p className="font-serif text-lg sm:text-xl text-ink/90 leading-relaxed italic line-clamp-3">
+                    <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
                       &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
                     </p>
                   )}
@@ -219,16 +219,16 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
 
                         {/* Excerpt by Kind */}
                         {piece.kind === 'quote' ? (
-                          <blockquote className="font-serif italic text-base sm:text-lg text-ink leading-relaxed border-l-2 border-ink pl-3 my-2">
+                          <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3">
                             &ldquo;{piece.body_md}&rdquo;
                           </blockquote>
                         ) : piece.kind === 'poem' ? (
-                          <div className="font-serif italic text-base text-ink/90 leading-relaxed mb-4 whitespace-pre-line border-l border-ink/30 pl-3">
+                          <div className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 whitespace-pre-line">
                             &ldquo;{piece.excerpt || piece.body_md.split('\n').slice(0, 3).join('\n')}&rdquo;
                           </div>
                         ) : (
-                          <p className="font-serif text-sm sm:text-base text-ink/85 leading-relaxed mb-4 line-clamp-3">
-                            {piece.excerpt || piece.body_md.slice(0, 160)}
+                          <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 line-clamp-3">
+                            &ldquo;{piece.excerpt || piece.body_md.slice(0, 160)}&rdquo;
                           </p>
                         )}
                       </div>

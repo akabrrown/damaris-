@@ -63,8 +63,8 @@ export default async function ReflectionDetailPage({ params }: PageProps) {
           {post.title}
         </h1>
         {post.excerpt && (
-          <p className="font-serif italic text-lg sm:text-xl text-muted mt-4 leading-relaxed">
-            {post.excerpt}
+          <p className="font-serif italic text-xl sm:text-2xl text-ink mt-4 leading-relaxed">
+            &ldquo;{post.excerpt}&rdquo;
           </p>
         )}
       </header>

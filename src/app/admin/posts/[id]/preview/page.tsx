@@ -77,8 +77,8 @@ export default async function DraftPreviewPage({ params }: PageProps) {
             </div>
             <h1 className="font-serif text-3xl sm:text-5xl text-ink font-normal">{post.title}</h1>
             {post.excerpt && (
-              <p className="font-serif italic text-lg sm:text-xl text-muted mt-3">
-                {post.excerpt}
+              <p className="font-serif italic text-xl sm:text-2xl text-ink mt-3 leading-relaxed">
+                &ldquo;{post.excerpt}&rdquo;
               </p>
             )}
           </header>

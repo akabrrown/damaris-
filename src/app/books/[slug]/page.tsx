@@ -123,7 +123,7 @@ export default async function BookDetailPage({ params }: PageProps) {
                 Excerpt
               </h2>
               <div
-                className="prose-reading text-base sm:text-lg leading-relaxed bg-paper-deep p-6 border border-line/60"
+                className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed bg-paper-deep p-6 border border-line/60"
                 dangerouslySetInnerHTML={{ __html: excerptHtml }}
               />
             </div>

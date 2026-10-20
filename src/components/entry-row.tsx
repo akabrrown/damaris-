@@ -87,8 +87,8 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
           {post.title}
         </h2>
         {post.excerpt && (
-          <p className="text-ink/85 text-base mt-2 line-clamp-2 leading-relaxed font-serif">
-            {post.excerpt}
+          <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
+            &ldquo;{post.excerpt}&rdquo;
           </p>
         )}
         <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-end text-xs uppercase tracking-wider text-ink font-sans font-medium">
