@@ -41,38 +41,33 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           <Link
             href="/poetry"
-            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block"
+            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block text-center"
           >
             <span className="font-serif text-lg block">Poetry</span>
-            <span className="text-xs text-muted mt-1 block">Verses &amp; lines</span>
           </Link>
           <Link
             href="/stories"
-            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block"
+            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block text-center"
           >
             <span className="font-serif text-lg block">Stories</span>
-            <span className="text-xs text-muted mt-1 block">Short fiction</span>
           </Link>
           <Link
             href="/reflections"
-            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block"
+            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block text-center"
           >
             <span className="font-serif text-lg block">Reflections</span>
-            <span className="text-xs text-muted mt-1 block">Essays &amp; thoughts</span>
           </Link>
           <Link
             href="/quotes"
-            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block"
+            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block text-center"
           >
             <span className="font-serif text-lg block">Quotes</span>
-            <span className="text-xs text-muted mt-1 block">Short lines</span>
           </Link>
           <Link
             href="/books"
-            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block"
+            className="p-4 border border-line bg-paper hover:bg-paper-deep text-ink transition-colors block text-center"
           >
             <span className="font-serif text-lg block">Books</span>
-            <span className="text-xs text-muted mt-1 block">Published &amp; forthcoming</span>
           </Link>
         </div>
       </section>
