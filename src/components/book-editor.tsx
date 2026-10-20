@@ -9,6 +9,7 @@ import {
   publishBookAction,
   unpublishBookAction,
   deleteBookAction,
+  uploadMediaAction,
 } from '@/lib/actions/admin-actions';
 import { MarkdownToolbar } from '@/components/markdown-toolbar';
 import { generateExcerpt } from '@/lib/excerpt';
@@ -63,13 +64,14 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMessage('Image size exceeds 2 MB limit.');
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMessage('Image size exceeds 10 MB limit.');
       return;
     }
 
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setErrorMessage('Only JPEG, PNG, or WebP images are permitted.');
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMessage('Only JPEG, PNG, WebP, AVIF, or GIF images are permitted.');
       return;
     }
 
@@ -77,21 +79,32 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
     setErrorMessage('');
 
     try {
-      const supabase = createClient();
-      const ext = file.name.split('.').pop() || 'webp';
-      const path = `covers/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'covers');
 
-      const { data, error } = await supabase.storage.from('media').upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-      if (error) throw error;
-
-      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
-      setCoverPath(publicUrlData.publicUrl);
+      const res = await uploadMediaAction(formData);
+      setCoverPath(res.publicUrl);
     } catch (err: unknown) {
-      setErrorMessage(`Upload failed: ${(err as Error).message}`);
+      console.warn('Server upload action error, attempting fallback:', err);
+      try {
+        const supabase = createClient();
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+        const path = `covers/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+        const { data, error } = await supabase.storage.from('media').upload(path, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
+        setCoverPath(publicUrlData.publicUrl);
+      } catch (clientErr: unknown) {
+        setErrorMessage(`Upload failed: ${(err as Error).message || (clientErr as Error).message}`);
+      }
     } finally {
       setUploadingImage(false);
     }
@@ -340,12 +353,12 @@ export function BookEditor({ initialBook, confirmedSubscribersCount }: BookEdito
         {/* Cover Upload */}
         <div className="p-4 bg-paper-deep border border-line space-y-4">
           <span className="text-xs uppercase tracking-wider text-muted font-semibold block">
-            Book Cover Image (Max 2 MB &middot; JPEG, PNG, or WebP)
+            Book Cover Image (Max 10 MB &middot; JPEG, PNG, WebP, AVIF, or GIF)
           </span>
 
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
             onChange={handleImageUpload}
             disabled={uploadingImage}
             className="text-sm file:mr-4 file:py-2 file:px-4 file:border file:border-ink file:bg-sage file:text-xs file:font-semibold"

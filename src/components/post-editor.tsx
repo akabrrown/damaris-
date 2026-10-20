@@ -9,6 +9,7 @@ import {
   publishPostAction,
   unpublishPostAction,
   deletePostAction,
+  uploadMediaAction,
 } from '@/lib/actions/admin-actions';
 import { generateSlug } from '@/lib/slug';
 import { generateExcerpt } from '@/lib/excerpt';
@@ -127,13 +128,14 @@ export function PostEditor({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('Image size exceeds 5 MB limit.');
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMessage('Image size exceeds 10 MB limit.');
       return;
     }
 
-    if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type)) {
-      setErrorMessage('Only JPEG, PNG, WebP, or AVIF images are permitted.');
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+    if (!allowedMimeTypes.includes(file.type)) {
+      setErrorMessage('Only JPEG, PNG, WebP, AVIF, or GIF images are permitted.');
       return;
     }
 
@@ -141,21 +143,33 @@ export function PostEditor({
     setErrorMessage('');
 
     try {
-      const supabase = createClient();
-      const ext = file.name.split('.').pop() || 'webp';
-      const path = `posts/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+      // Primary: Server-side authenticated upload (immune to browser cookie/session token mismatches)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'posts');
 
-      const { data, error } = await supabase.storage.from('media').upload(path, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-      if (error) throw error;
-
-      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
-      setFeaturedImagePath(publicUrlData.publicUrl);
+      const res = await uploadMediaAction(formData);
+      setFeaturedImagePath(res.publicUrl);
     } catch (err: unknown) {
-      setErrorMessage(`Upload failed: ${(err as Error).message}`);
+      console.warn('Server upload action returned error, attempting client-side fallback:', err);
+      try {
+        const supabase = createClient();
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+        const path = `posts/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+        const { data, error } = await supabase.storage.from('media').upload(path, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+        if (error) throw error;
+
+        const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
+        setFeaturedImagePath(publicUrlData.publicUrl);
+      } catch (clientErr: unknown) {
+        setErrorMessage(`Upload failed: ${(err as Error).message || (clientErr as Error).message}`);
+      }
     } finally {
       setUploadingImage(false);
     }
@@ -834,7 +848,7 @@ export function PostEditor({
                         <input
                           id="post-image-replace"
                           type="file"
-                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
                           onChange={handleImageUpload}
                           disabled={uploadingImage}
                           className="sr-only"
@@ -906,12 +920,12 @@ export function PostEditor({
                     {uploadingImage ? 'Uploading image to media library…' : 'Click to select artwork or featured image'}
                   </span>
                   <span className="text-[11px] text-muted">
-                    PNG, JPEG, WebP or AVIF &middot; Max 5 MB
+                    PNG, JPEG, WebP, AVIF or GIF &middot; Max 10 MB
                   </span>
                   <input
                     id="post-image-upload"
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
                     onChange={handleImageUpload}
                     disabled={uploadingImage}
                     className="sr-only"

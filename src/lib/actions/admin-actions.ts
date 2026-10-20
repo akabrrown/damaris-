@@ -446,6 +446,48 @@ export async function removeSubscriberAction(id: string) {
 }
 
 // ==========================================
+// MEDIA STORAGE ACTIONS
+// ==========================================
+
+export async function uploadMediaAction(formData: FormData): Promise<{ publicUrl: string; path: string }> {
+  const { supabase } = await requireAdmin();
+
+  const file = formData.get('file') as File | null;
+  if (!file) {
+    throw new Error('No file provided for upload.');
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('Image size exceeds 10 MB limit.');
+  }
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Only JPEG, PNG, WebP, AVIF, or GIF images are permitted.');
+  }
+
+  const folder = (formData.get('folder') as string) || 'posts';
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const { data, error } = await supabase.storage.from('media').upload(path, buffer, {
+    contentType: file.type,
+    cacheControl: '3600',
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(`Upload failed: ${error.message}`);
+  }
+
+  const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
+  return { publicUrl: publicUrlData.publicUrl, path: data.path };
+}
+
+// ==========================================
 // QSTASH JOB DISPATCH HELPER
 // ==========================================
 
