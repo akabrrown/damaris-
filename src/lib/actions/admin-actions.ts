@@ -118,12 +118,14 @@ export async function updatePostAction(id: string, input: Partial<PostInput>) {
   }
 
   if (existing.status === 'published') {
-    revalidatePath('/');
-    revalidatePath(getSectionPath(existing.kind));
-    revalidatePath(getPiecePath(existing.kind, existing.slug));
+    revalidatePath('/', 'layout');
+    revalidatePath(getSectionPath(existing.kind), 'page');
+    revalidatePath(getPiecePath(existing.kind, existing.slug), 'page');
   }
 
-  revalidatePath('/admin/posts');
+  revalidatePath('/admin/posts', 'page');
+  revalidatePath(`/admin/posts/${id}`, 'page');
+  revalidatePath(`/admin/posts/${id}/preview`, 'page');
   return { success: true };
 }
 

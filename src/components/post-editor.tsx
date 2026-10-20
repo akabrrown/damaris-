@@ -76,6 +76,7 @@ export function PostEditor({
   // Autosave status state
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [notifySubscribers, setNotifySubscribers] = useState(kind !== 'quote'); // Default off for quotes (PRD FR-NTF-01)
   const [isPending, startTransition] = useTransition();
@@ -319,11 +320,14 @@ export function PostEditor({
     return () => clearTimeout(timer);
   }, [id, status, handleAutoSave]);
 
-  const handleSaveDraft = async () => {
+  const handleSave = async () => {
     setErrorMessage('');
-    if (featuredImagePath && !featuredImageAlt.trim()) {
-      setErrorMessage('Image alt text is required for accessibility whenever a featured image is uploaded.');
-      return;
+    setSuccessMessage('');
+
+    let resolvedAlt = featuredImageAlt.trim();
+    if (featuredImagePath && !resolvedAlt) {
+      resolvedAlt = title.trim() ? `Featured artwork for ${title.trim()}` : 'Featured artwork';
+      setFeaturedImageAlt(resolvedAlt);
     }
 
     const finalExcerpt = excerpt.trim() || generateExcerpt(bodyMd, kind) || undefined;
@@ -339,12 +343,13 @@ export function PostEditor({
             slug: slug || generateSlug(title || 'item'),
             allow_comments: allowComments,
             featured_image_path: featuredImagePath || undefined,
-            featured_image_alt: featuredImageAlt || undefined,
+            featured_image_alt: resolvedAlt || undefined,
             featured_image_caption: featuredImageCaption || undefined,
             status: 'draft',
             notify: false,
           });
           setId(created.id);
+          setSuccessMessage('Draft created successfully!');
           router.replace(`/admin/posts/${created.id}`);
         } else {
           await updatePostAction(id, {
@@ -355,11 +360,14 @@ export function PostEditor({
             slug: slug || undefined,
             allow_comments: allowComments,
             featured_image_path: featuredImagePath || null,
-            featured_image_alt: featuredImageAlt || null,
+            featured_image_alt: resolvedAlt || null,
             featured_image_caption: featuredImageCaption || null,
           });
+          setSuccessMessage(status === 'published' ? 'Changes saved and updated live!' : 'Changes saved successfully!');
+          router.refresh();
         }
         setSaveState('saved');
+        setTimeout(() => setSuccessMessage(''), 5000);
       } catch (err: unknown) {
         setErrorMessage((err as Error).message);
       }
@@ -432,7 +440,17 @@ export function PostEditor({
         </div>
 
         <div className="flex items-center space-x-3">
-          {id && (
+          {id && status === 'published' && (
+            <a
+              href={getPiecePath(kind, slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-moss hover:text-ink underline py-2 font-medium"
+            >
+              View live piece &rarr;
+            </a>
+          )}
+          {id && status !== 'published' && (
             <a
               href={`/admin/posts/${id}/preview`}
               target="_blank"
@@ -457,6 +475,25 @@ export function PostEditor({
       {errorMessage && (
         <div role="alert" className="p-4 bg-paper-deep border border-alert text-alert text-sm">
           {errorMessage}
+        </div>
+      )}
+
+      {successMessage && (
+        <div role="status" className="p-4 bg-sage/20 border border-moss text-ink text-sm flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-moss">✓</span>
+            <span>{successMessage}</span>
+          </div>
+          {id && status === 'published' && (
+            <a
+              href={getPiecePath(kind, slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-moss hover:underline underline ml-4"
+            >
+              View live piece &rarr;
+            </a>
+          )}
         </div>
       )}
 
@@ -959,24 +996,35 @@ export function PostEditor({
       {/* Sticky Bottom Actions Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-paper-deep border-t border-ink/40 p-4 z-30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={isPending}
-            className="px-6 py-3 border border-ink bg-paper hover:bg-paper-deep text-ink text-sm font-medium transition-colors cursor-pointer"
-          >
-            {isPending ? 'Saving…' : 'Save Draft'}
-          </button>
+          {status === 'published' ? (
+            <button
+              type="button"
+              onClick={handleUnpublish}
+              disabled={isPending}
+              className="px-6 py-3 border border-line bg-paper text-muted hover:text-ink text-sm font-medium cursor-pointer"
+            >
+              Unpublish to Draft
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isPending}
+              className="px-6 py-3 border border-ink bg-paper hover:bg-paper-deep text-ink text-sm font-medium transition-colors cursor-pointer"
+            >
+              {isPending ? 'Saving…' : 'Save Draft'}
+            </button>
+          )}
 
           <div className="flex items-center space-x-3">
             {status === 'published' ? (
               <button
                 type="button"
-                onClick={handleUnpublish}
+                onClick={handleSave}
                 disabled={isPending}
-                className="px-6 py-3 border border-line bg-paper text-muted hover:text-ink text-sm font-medium cursor-pointer"
+                className="px-8 py-3 bg-sage hover:bg-sage/80 border border-ink text-ink font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50"
               >
-                Unpublish to Draft
+                {isPending ? 'Saving…' : 'Save Changes'}
               </button>
             ) : (
               <button
