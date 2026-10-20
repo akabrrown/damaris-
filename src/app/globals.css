@@ -248,6 +248,10 @@ body {
   background-color: #00ab6c;
 }
 
+.social-container:hover.social-email {
+  background-color: #ea4335;
+}
+
 .social-container:active {
   transform: scale(0.9);
 }

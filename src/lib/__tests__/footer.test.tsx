@@ -71,8 +71,14 @@ describe('PublicFooter Social Handles Card', () => {
     expect(mediumLink?.getAttribute('rel')).toBe('noopener noreferrer');
     expect(mediumLink?.classList.contains('social-medium')).toBe(true);
 
+    // Check Email
+    const emailLink = container.querySelector('a[href="mailto:carolinedamaris22@gmail.com"]');
+    expect(emailLink).not.toBeNull();
+    expect(emailLink?.getAttribute('aria-label')).toContain('carolinedamaris22@gmail.com');
+    expect(emailLink?.classList.contains('social-email')).toBe(true);
+
     // Check SVGs
     const svgs = socialCard?.querySelectorAll('svg');
-    expect(svgs?.length).toBe(3);
+    expect(svgs?.length).toBe(4);
   });
 });
