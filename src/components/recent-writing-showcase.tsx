@@ -117,37 +117,94 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
           )}
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-10 sm:space-y-12">
           {/* Featured Lead Editorial Card */}
           {leadPiece && (
-            <article className="border border-ink bg-sage hover:bg-sage/85 text-ink transition-all duration-300 relative group p-6 sm:p-10 shadow-xs">
+            <article className="relative group">
               <Link
                 href={getPiecePath(leadPiece.kind, leadPiece.slug)}
                 className="block focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4"
               >
-                {/* Meta Badge Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-wider text-ink/80 mb-4 pb-3 border-b border-ink/20">
-                  <div className="flex items-center space-x-2">
-                    <span className="px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-sans font-semibold tracking-widest uppercase">
-                      {KIND_METADATA[leadPiece.kind].singular}
-                    </span>
-                    <span className="text-ink/40" aria-hidden="true">&bull;</span>
-                    <span className="text-ink/80 font-medium">Featured piece</span>
-                  </div>
-                  <div className="flex items-center space-x-3 text-ink/80 font-medium">
-                    <time dateTime={leadPiece.published_at || ''}>{formatDate(leadPiece.published_at)}</time>
-                    {(leadPiece.kind === 'story' || leadPiece.kind === 'reflection') && (
-                      <>
-                        <span aria-hidden="true">&bull;</span>
-                        <span>{calculateReadingTime(leadPiece.body_md)}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {leadPiece.featured_image_path ? (
+                  <div>
+                    {/* Header Row: Title on Left, Overlapping Portrait on Right */}
+                    <div className="flex items-start justify-between gap-4 relative z-10 pb-2">
+                      <div className="flex-1 min-w-0 pr-2">
+                        {/* Meta badge */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted mb-2 font-medium">
+                          <span className="px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-sans font-semibold tracking-widest uppercase">
+                            {KIND_METADATA[leadPiece.kind].singular}
+                          </span>
+                          <span className="text-muted" aria-hidden="true">&bull;</span>
+                          <span className="text-muted font-medium">Featured piece</span>
+                          <span className="text-muted" aria-hidden="true">&bull;</span>
+                          <time dateTime={leadPiece.published_at || ''}>{formatDate(leadPiece.published_at)}</time>
+                        </div>
+                        <h3 className="font-serif text-2xl sm:text-4xl md:text-5xl text-ink font-normal leading-tight tracking-tight group-hover:underline group-hover:underline-offset-4 transition-all">
+                          {leadPiece.title}
+                        </h3>
+                      </div>
 
-                {/* Content */}
-                <div className={leadPiece.featured_image_path ? "grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center" : "max-w-[760px] space-y-4"}>
-                  <div className={leadPiece.featured_image_path ? "md:col-span-7 space-y-4" : "space-y-4"}>
+                      {/* Overlapping portrait image */}
+                      <div className="w-24 sm:w-36 md:w-44 aspect-[3/4] shrink-0 -mb-12 sm:-mb-20 overflow-hidden border border-ink bg-paper-deep shadow-xs transition-transform duration-300 group-hover:-translate-y-0.5">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={leadPiece.featured_image_path}
+                          alt={leadPiece.featured_image_alt || leadPiece.title || 'Featured piece artwork'}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Card Block */}
+                    <div className="border border-ink bg-sage hover:bg-sage/85 text-ink p-6 sm:p-10 transition-colors shadow-xs">
+                      <div className="pr-20 sm:pr-32 md:pr-40">
+                        {leadPiece.kind === 'quote' ? (
+                          <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-2">
+                            &ldquo;{leadPiece.body_md}&rdquo;
+                          </blockquote>
+                        ) : (
+                          <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-2 line-clamp-4">
+                            &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Read Action */}
+                      <div className="mt-8 pt-4 border-t border-ink/20 flex items-center justify-between text-sm font-medium text-ink">
+                        <span className="inline-flex items-center gap-1.5 group-hover:underline font-serif italic text-base">
+                          Read <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                        </span>
+                        {(leadPiece.kind === 'story' || leadPiece.kind === 'reflection') && (
+                          <span className="text-xs text-ink/75 font-sans font-medium">
+                            {calculateReadingTime(leadPiece.body_md)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border border-ink bg-sage hover:bg-sage/85 text-ink p-6 sm:p-10 transition-colors shadow-xs">
+                    {/* Meta Badge Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-wider text-ink/80 mb-4 pb-3 border-b border-ink/20">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-sans font-semibold tracking-widest uppercase">
+                          {KIND_METADATA[leadPiece.kind].singular}
+                        </span>
+                        <span className="text-ink/40" aria-hidden="true">&bull;</span>
+                        <span className="text-ink/80 font-medium">Featured piece</span>
+                      </div>
+                      <div className="flex items-center space-x-3 text-ink/80 font-medium">
+                        <time dateTime={leadPiece.published_at || ''}>{formatDate(leadPiece.published_at)}</time>
+                        {(leadPiece.kind === 'story' || leadPiece.kind === 'reflection') && (
+                          <>
+                            <span aria-hidden="true">&bull;</span>
+                            <span>{calculateReadingTime(leadPiece.body_md)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
                     <h3 className="font-serif text-2xl sm:text-4xl text-ink font-normal leading-tight tracking-tight group-hover:underline group-hover:underline-offset-4 transition-all">
                       {leadPiece.title}
                     </h3>
@@ -161,37 +218,22 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                         &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
                       </p>
                     )}
-                  </div>
 
-                  {leadPiece.featured_image_path && (
-                    <div className="md:col-span-5 flex justify-center md:justify-end">
-                      <div className="w-full max-w-[220px] sm:max-w-[280px] md:max-w-none p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
-                        <div className="w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden border border-ink/15 bg-paper-deep">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={leadPiece.featured_image_path}
-                            alt={leadPiece.featured_image_alt || leadPiece.title || 'Featured piece artwork'}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                          />
-                        </div>
-                      </div>
+                    {/* Read Action */}
+                    <div className="mt-6 pt-4 border-t border-ink/20 flex items-center justify-between text-sm font-medium text-ink">
+                      <span className="inline-flex items-center gap-1.5 group-hover:underline font-serif italic text-base">
+                        Read <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                      </span>
                     </div>
-                  )}
-                </div>
-
-                {/* Read Action */}
-                <div className="mt-6 pt-4 border-t border-ink/20 flex items-center justify-between text-sm font-medium text-ink">
-                  <span className="inline-flex items-center gap-1.5 group-hover:underline font-serif italic text-base">
-                    Read <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                  </span>
-                </div>
+                  </div>
+                )}
               </Link>
             </article>
           )}
 
           {/* Pinterest-style Masonry / Editorial Cards Grid */}
           {gridPieces.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {gridPieces.map((piece) => {
                 const href = getPiecePath(piece.kind, piece.slug);
                 const readingTime = (piece.kind === 'story' || piece.kind === 'reflection')
@@ -201,65 +243,111 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                 return (
                   <article
                     key={piece.id}
-                    className="border border-ink bg-sage hover:bg-sage/85 text-ink p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 hover:shadow-xs"
+                    className="group transition-all duration-300 flex flex-col justify-between"
                   >
                     <Link
                       href={href}
                       className="block focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4 flex-1 flex flex-col justify-between"
                     >
-                      <div>
-                        {/* Top Category Tag + Date */}
-                        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-ink/80 mb-3 pb-2 border-b border-ink/20">
-                          <span className="inline-flex items-center px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-semibold tracking-widest">
-                            {piece.kind}
-                          </span>
-                          <time dateTime={piece.published_at || ''} className="text-[11px] font-medium">
-                            {formatDate(piece.published_at)}
-                          </time>
-                        </div>
+                      {piece.featured_image_path ? (
+                        <div className="flex-1 flex flex-col justify-between">
+                          {/* Top Header: Title + Image overlapping card */}
+                          <div className="flex items-start justify-between gap-3 relative z-10 pb-2">
+                            <div className="flex-1 min-w-0 pr-1">
+                              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted mb-2 font-medium">
+                                <span className="inline-flex items-center px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-semibold tracking-widest font-sans">
+                                  {piece.kind}
+                                </span>
+                                <time dateTime={piece.published_at || ''} className="text-[11px] font-medium text-muted">
+                                  {formatDate(piece.published_at)}
+                                </time>
+                              </div>
+                              <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug group-hover:underline group-hover:underline-offset-2 transition-all">
+                                {piece.title}
+                              </h3>
+                            </div>
 
-                        {/* Featured Image Thumbnail (if available) */}
-                        {piece.featured_image_path && (
-                          <div className="mb-4 p-1 bg-paper/50 border border-ink/20 shadow-2xs">
-                            <div className="h-28 sm:h-36 md:h-40 w-full overflow-hidden border border-ink/15 bg-paper-deep">
+                            {/* Overlapping portrait image */}
+                            <div className="w-20 sm:w-28 aspect-[3/4] shrink-0 -mb-10 sm:-mb-14 overflow-hidden border border-ink bg-paper-deep shadow-2xs transition-transform duration-300 group-hover:-translate-y-0.5">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={piece.featured_image_path}
                                 alt={piece.featured_image_alt || piece.title || 'Artwork preview'}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                               />
                             </div>
                           </div>
-                        )}
 
-                        {/* Title */}
-                        <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug mb-3 group-hover:underline group-hover:underline-offset-2 transition-all">
-                          {piece.title}
-                        </h3>
+                          {/* Card Block */}
+                          <div className="border border-ink bg-sage hover:bg-sage/85 text-ink p-5 sm:p-6 transition-all duration-300 shadow-xs flex-1 flex flex-col justify-between">
+                            <div className="pr-16 sm:pr-24">
+                              {piece.kind === 'quote' ? (
+                                <blockquote className="font-serif italic text-base sm:text-lg text-ink leading-relaxed my-2">
+                                  &ldquo;{piece.body_md}&rdquo;
+                                </blockquote>
+                              ) : piece.kind === 'poem' ? (
+                                <div className="font-serif italic text-base sm:text-lg text-ink leading-relaxed mb-2 whitespace-pre-line">
+                                  &ldquo;{piece.excerpt || piece.body_md.split('\n').slice(0, 3).join('\n')}&rdquo;
+                                </div>
+                              ) : (
+                                <p className="font-serif italic text-base sm:text-lg text-ink leading-relaxed mb-2 line-clamp-3">
+                                  &ldquo;{piece.excerpt || piece.body_md.slice(0, 160)}&rdquo;
+                                </p>
+                              )}
+                            </div>
 
-                        {/* Excerpt by Kind */}
-                        {piece.kind === 'quote' ? (
-                          <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3">
-                            &ldquo;{piece.body_md}&rdquo;
-                          </blockquote>
-                        ) : piece.kind === 'poem' ? (
-                          <div className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 whitespace-pre-line">
-                            &ldquo;{piece.excerpt || piece.body_md.split('\n').slice(0, 3).join('\n')}&rdquo;
+                            {/* Footer */}
+                            <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 font-medium">
+                              <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : null)}</span>
+                              <span className="inline-flex items-center text-ink group-hover:underline font-medium">
+                                Read &rarr;
+                              </span>
+                            </div>
                           </div>
-                        ) : (
-                          <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 line-clamp-3">
-                            &ldquo;{piece.excerpt || piece.body_md.slice(0, 160)}&rdquo;
-                          </p>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="border border-ink bg-sage hover:bg-sage/85 text-ink p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 shadow-xs flex-1">
+                          <div>
+                            {/* Top Category Tag + Date */}
+                            <div className="flex items-center justify-between text-xs uppercase tracking-wider text-ink/80 mb-3 pb-2 border-b border-ink/20">
+                              <span className="inline-flex items-center px-2 py-0.5 bg-paper border border-ink text-ink text-[10px] font-semibold tracking-widest">
+                                {piece.kind}
+                              </span>
+                              <time dateTime={piece.published_at || ''} className="text-[11px] font-medium">
+                                {formatDate(piece.published_at)}
+                              </time>
+                            </div>
 
-                      {/* Footer Info */}
-                      <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 font-medium">
-                        <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : null)}</span>
-                        <span className="inline-flex items-center text-ink group-hover:underline font-medium">
-                          Read &rarr;
-                        </span>
-                      </div>
+                            {/* Title */}
+                            <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug mb-3 group-hover:underline group-hover:underline-offset-2 transition-all">
+                              {piece.title}
+                            </h3>
+
+                            {/* Excerpt by Kind */}
+                            {piece.kind === 'quote' ? (
+                              <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3">
+                                &ldquo;{piece.body_md}&rdquo;
+                              </blockquote>
+                            ) : piece.kind === 'poem' ? (
+                              <div className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 whitespace-pre-line">
+                                &ldquo;{piece.excerpt || piece.body_md.split('\n').slice(0, 3).join('\n')}&rdquo;
+                              </div>
+                            ) : (
+                              <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed mb-3 line-clamp-3">
+                                &ldquo;{piece.excerpt || piece.body_md.slice(0, 160)}&rdquo;
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Footer Info */}
+                          <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 font-medium">
+                            <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : null)}</span>
+                            <span className="inline-flex items-center text-ink group-hover:underline font-medium">
+                              Read &rarr;
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </Link>
                   </article>
                 );
