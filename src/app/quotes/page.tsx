@@ -20,7 +20,6 @@ export default async function QuotesPage({ searchParams }: PageProps) {
     <SectionIndex
       kind="quote"
       title="Quotes"
-      description="Lines, thoughts, and fragments held in quiet focus."
       cursor={params.cursor}
     />
   );

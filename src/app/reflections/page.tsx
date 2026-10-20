@@ -20,7 +20,6 @@ export default async function ReflectionsPage({ searchParams }: PageProps) {
     <SectionIndex
       kind="reflection"
       title="Reflections"
-      description="Essays, personal observations, and notes on reading and living."
       cursor={params.cursor}
     />
   );

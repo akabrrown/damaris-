@@ -8,7 +8,7 @@ import { EntryRow } from './entry-row';
 interface SectionIndexProps {
   kind: PostKind;
   title: string;
-  description: string;
+  description?: string;
   cursor?: string;
 }
 
@@ -25,9 +25,11 @@ export async function SectionIndex({ kind, title, description, cursor }: Section
         <h1 className="font-serif text-3xl sm:text-5xl text-ink font-normal tracking-tight">
           {title}
         </h1>
-        <p className="font-serif text-lg sm:text-xl text-muted font-normal mt-3 leading-relaxed">
-          {description}
-        </p>
+        {description && (
+          <p className="font-serif text-lg sm:text-xl text-muted font-normal mt-3 leading-relaxed">
+            {description}
+          </p>
+        )}
       </header>
 
       {/* List of Pieces */}

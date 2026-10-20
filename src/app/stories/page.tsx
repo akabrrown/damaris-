@@ -20,7 +20,6 @@ export default async function StoriesPage({ searchParams }: PageProps) {
     <SectionIndex
       kind="story"
       title="Short Stories"
-      description="Narratives and brief glimpses into other lives and places."
       cursor={params.cursor}
     />
   );

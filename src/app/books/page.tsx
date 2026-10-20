@@ -21,9 +21,6 @@ export default async function BooksPage() {
         <h1 className="font-serif text-3xl sm:text-5xl text-ink font-normal tracking-tight">
           Books
         </h1>
-        <p className="font-serif text-lg sm:text-xl text-muted font-normal mt-3 leading-relaxed">
-          Published collections, chapbooks, and titles currently in progress.
-        </p>
       </header>
 
       {/* Grid of Books */}

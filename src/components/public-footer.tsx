@@ -93,9 +93,15 @@ export function PublicFooter({ authorName }: PublicFooterProps) {
 
         {/* Footer Meta & Legal */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-8 border-t border-line/60 text-sm text-muted">
-          <p className="m-0">
-            &copy; {currentYear} {displayName}. All rights reserved.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+            <p className="m-0">
+              &copy; {currentYear} {displayName}. All rights reserved.
+            </p>
+            <span className="hidden sm:inline text-line" aria-hidden="true">&middot;</span>
+            <p className="m-0 text-xs sm:text-sm text-muted">
+              Developed by <span className="text-ink font-medium">Codey Dev</span>
+            </p>
+          </div>
 
           <div className="flex items-center space-x-6">
             <Link

@@ -80,5 +80,8 @@ describe('PublicFooter Social Handles Card', () => {
     // Check SVGs
     const svgs = socialCard?.querySelectorAll('svg');
     expect(svgs?.length).toBe(4);
+
+    // Check Developed by Codey Dev
+    expect(container.textContent).toContain('Developed by Codey Dev');
   });
 });

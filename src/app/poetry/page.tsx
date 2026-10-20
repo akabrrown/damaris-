@@ -20,7 +20,6 @@ export default async function PoetryPage({ searchParams }: PageProps) {
     <SectionIndex
       kind="poem"
       title="Poetry"
-      description="Lines written in quiet moments, held together by rhythm and space."
       cursor={params.cursor}
     />
   );
