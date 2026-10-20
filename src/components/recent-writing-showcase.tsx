@@ -173,10 +173,7 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                 {/* Read Action */}
                 <div className="mt-6 pt-4 border-t border-ink/20 flex items-center justify-between text-sm font-medium text-ink">
                   <span className="inline-flex items-center gap-1.5 group-hover:underline font-serif italic text-base">
-                    Read piece <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                  </span>
-                  <span className="text-xs uppercase tracking-widest text-ink/75 font-sans font-medium">
-                    Caroline Damaris Donkor
+                    Read <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
                   </span>
                 </div>
               </Link>
@@ -235,7 +232,7 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
 
                       {/* Footer Info */}
                       <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 font-medium">
-                        <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : 'Caroline')}</span>
+                        <span>{readingTime || (piece.attribution ? `— ${piece.attribution}` : null)}</span>
                         <span className="inline-flex items-center text-ink group-hover:underline font-medium">
                           Read &rarr;
                         </span>

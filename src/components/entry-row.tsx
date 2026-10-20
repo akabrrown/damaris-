@@ -33,7 +33,7 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
             &ldquo;{post.body_md}&rdquo;
           </blockquote>
           <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-between text-xs text-ink/80 uppercase tracking-wider font-medium">
-            <span>{post.attribution ? `— ${post.attribution}` : '— Caroline Damaris Donkor'}</span>
+            <span>{post.attribution ? `— ${post.attribution}` : null}</span>
             <time dateTime={post.published_at || ''}>{formattedDate}</time>
           </div>
         </Link>
@@ -63,7 +63,7 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
           )}
           <h2 className="font-serif text-lg sm:text-xl font-normal text-ink flex items-center justify-between gap-2">
             <span>{post.title}</span>
-            <span className="text-xs uppercase tracking-wider text-ink font-sans font-medium group-hover:underline" aria-hidden="true">&rarr; Read poem</span>
+            <span className="text-xs uppercase tracking-wider text-ink font-sans font-medium group-hover:underline" aria-hidden="true">&rarr; Read</span>
           </h2>
         </Link>
       </article>
@@ -92,7 +92,7 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
           </p>
         )}
         <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-end text-xs uppercase tracking-wider text-ink font-sans font-medium">
-          <span className="group-hover:underline">Read piece &rarr;</span>
+          <span className="group-hover:underline">Read &rarr;</span>
         </div>
       </Link>
     </article>

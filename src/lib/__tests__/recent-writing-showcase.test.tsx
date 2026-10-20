@@ -136,4 +136,25 @@ describe('RecentWritingShowcase (Pinterest-inspired Literary Showcase)', () => {
 
     expect(container.textContent).toContain('No reflections published yet');
   });
+
+  it('displays link text as Read and does not render author name in card footers', () => {
+    act(() => {
+      root.render(<RecentWritingShowcase posts={mockPosts} />);
+    });
+    // Check all anchor/read spans
+    const readElements = Array.from(container.querySelectorAll('span')).filter((s) =>
+      s.textContent?.trim().startsWith('Read')
+    );
+    expect(readElements.length).toBeGreaterThan(0);
+    for (const el of readElements) {
+      expect(el.textContent?.trim()).not.toContain('Read piece');
+      expect(el.textContent?.trim()).toMatch(/^Read/);
+    }
+
+    // Verify writer name is not present in lead footer
+    const leadArticle = container.querySelector('article');
+    const leadFooter = leadArticle?.querySelector('.border-t');
+    expect(leadFooter?.textContent).not.toContain('Caroline Damaris Donkor');
+  });
 });
+
