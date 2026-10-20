@@ -74,19 +74,21 @@ export default async function StoryDetailPage({ params }: PageProps) {
         )}
       </header>
 
-      {/* Featured Artwork / Banner */}
+      {/* Featured Artwork Vignette */}
       {post.featured_image_path && (
-        <figure className="my-8 sm:my-10 space-y-2">
-          <div className="w-full aspect-[16/9] overflow-hidden border border-ink/40 bg-paper-deep shadow-2xs">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={post.featured_image_path}
-              alt={post.featured_image_alt || post.title || 'Story featured artwork'}
-              className="w-full h-full object-cover"
-            />
+        <figure className="my-6 sm:my-10 flex flex-col items-center">
+          <div className="w-full max-w-[280px] sm:max-w-[440px] md:max-w-[580px] p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
+            <div className="w-full aspect-[16/10] sm:aspect-[16/9] overflow-hidden border border-ink/15 bg-paper-deep">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.featured_image_path}
+                alt={post.featured_image_alt || post.title || 'Story featured artwork'}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
           {post.featured_image_caption && (
-            <figcaption className="text-xs text-muted font-sans italic text-center pt-1">
+            <figcaption className="text-xs text-muted font-sans italic text-center mt-2.5 max-w-md">
               {post.featured_image_caption}
             </figcaption>
           )}

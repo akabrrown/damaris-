@@ -198,16 +198,18 @@ export function PostEditor({
 
           {featuredImagePath && (
             <figure className="my-6 flex flex-col items-center">
-              <div className="w-full max-w-[340px] aspect-[4/3] overflow-hidden border border-ink/30 bg-paper-deep">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={featuredImagePath}
-                  alt={featuredImageAlt || 'Poem artwork'}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-full max-w-[190px] sm:max-w-[250px] md:max-w-[320px] p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
+                <div className="w-full aspect-[4/3] overflow-hidden border border-ink/15 bg-paper-deep">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={featuredImagePath}
+                    alt={featuredImageAlt || 'Poem artwork'}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
               {featuredImageCaption && (
-                <figcaption className="text-xs text-muted font-sans italic text-center mt-2">
+                <figcaption className="text-xs text-muted font-sans italic text-center mt-2.5 max-w-[280px]">
                   {featuredImageCaption}
                 </figcaption>
               )}
@@ -258,17 +260,19 @@ export function PostEditor({
         )}
 
         {featuredImagePath && (
-          <figure className="my-6 space-y-2">
-            <div className="w-full aspect-[16/9] overflow-hidden border border-ink/40 bg-paper-deep">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={featuredImagePath}
-                alt={featuredImageAlt || title || 'Featured image'}
-                className="w-full h-full object-cover"
-              />
+          <figure className="my-6 flex flex-col items-center">
+            <div className="w-full max-w-[280px] sm:max-w-[440px] md:max-w-[580px] p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
+              <div className="w-full aspect-[16/10] sm:aspect-[16/9] overflow-hidden border border-ink/15 bg-paper-deep">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={featuredImagePath}
+                  alt={featuredImageAlt || title || 'Featured image'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
             {featuredImageCaption && (
-              <figcaption className="text-xs text-muted font-sans italic text-center">
+              <figcaption className="text-xs text-muted font-sans italic text-center mt-2.5 max-w-md">
                 {featuredImageCaption}
               </figcaption>
             )}

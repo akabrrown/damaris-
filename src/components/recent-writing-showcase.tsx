@@ -164,14 +164,16 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                   </div>
 
                   {leadPiece.featured_image_path && (
-                    <div className="md:col-span-5">
-                      <div className="w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={leadPiece.featured_image_path}
-                          alt={leadPiece.featured_image_alt || leadPiece.title || 'Featured piece artwork'}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                        />
+                    <div className="md:col-span-5 flex justify-center md:justify-end">
+                      <div className="w-full max-w-[220px] sm:max-w-[280px] md:max-w-none p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
+                        <div className="w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden border border-ink/15 bg-paper-deep">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={leadPiece.featured_image_path}
+                            alt={leadPiece.featured_image_alt || leadPiece.title || 'Featured piece artwork'}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -218,13 +220,15 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
 
                         {/* Featured Image Thumbnail (if available) */}
                         {piece.featured_image_path && (
-                          <div className="mb-4 aspect-[16/10] overflow-hidden border border-ink/30 bg-paper-deep">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={piece.featured_image_path}
-                              alt={piece.featured_image_alt || piece.title || 'Artwork preview'}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                            />
+                          <div className="mb-4 p-1 bg-paper/50 border border-ink/20 shadow-2xs">
+                            <div className="h-28 sm:h-36 md:h-40 w-full overflow-hidden border border-ink/15 bg-paper-deep">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={piece.featured_image_path}
+                                alt={piece.featured_image_alt || piece.title || 'Artwork preview'}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              />
+                            </div>
                           </div>
                         )}
 

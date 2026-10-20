@@ -65,17 +65,19 @@ export default async function PoemDetailPage({ params }: PageProps) {
 
       {/* Featured Artwork Vignette */}
       {post.featured_image_path && (
-        <figure className="my-8 flex flex-col items-center">
-          <div className="w-full max-w-[340px] aspect-[4/3] overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={post.featured_image_path}
-              alt={post.featured_image_alt || post.title || 'Poem artwork'}
-              className="w-full h-full object-cover"
-            />
+        <figure className="my-6 sm:my-8 flex flex-col items-center">
+          <div className="w-full max-w-[190px] sm:max-w-[250px] md:max-w-[320px] p-1.5 sm:p-2 bg-paper/60 border border-ink/25 shadow-xs">
+            <div className="w-full aspect-[4/3] overflow-hidden border border-ink/15 bg-paper-deep">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.featured_image_path}
+                alt={post.featured_image_alt || post.title || 'Poem artwork'}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
           {post.featured_image_caption && (
-            <figcaption className="text-xs text-muted font-sans italic text-center mt-2">
+            <figcaption className="text-xs text-muted font-sans italic text-center mt-2.5 max-w-[280px]">
               {post.featured_image_caption}
             </figcaption>
           )}

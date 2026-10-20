@@ -56,7 +56,7 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
             )}
             <time dateTime={post.published_at || ''} className="ml-auto">{formattedDate}</time>
           </div>
-          <div className={post.featured_image_path ? "flex flex-col sm:flex-row gap-5 items-start justify-between" : ""}>
+          <div className={post.featured_image_path ? "flex gap-4 sm:gap-5 items-start justify-between" : ""}>
             <div className="flex-1 min-w-0">
               {featuredLines && (
                 <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed whitespace-pre-line mb-3">
@@ -69,13 +69,15 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
               </h2>
             </div>
             {post.featured_image_path && (
-              <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={post.featured_image_path}
-                  alt={post.featured_image_alt || post.title || 'Poem artwork'}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+              <div className="w-16 h-16 sm:w-24 sm:h-24 shrink-0 p-1 bg-paper/60 border border-ink/25 shadow-2xs">
+                <div className="w-full h-full overflow-hidden border border-ink/15 bg-paper-deep">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={post.featured_image_path}
+                    alt={post.featured_image_alt || post.title || 'Poem artwork'}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -98,7 +100,7 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
           <time dateTime={post.published_at || ''} className="ml-auto">{formattedDate}</time>
         </div>
 
-        <div className={post.featured_image_path ? "flex flex-col sm:flex-row gap-5 items-start justify-between" : ""}>
+        <div className={post.featured_image_path ? "flex gap-4 sm:gap-5 items-start justify-between" : ""}>
           <div className="flex-1 min-w-0">
             <h2 className="font-serif text-2xl sm:text-3xl font-normal text-ink group-hover:underline group-hover:underline-offset-4 transition-colors">
               {post.title}
@@ -110,13 +112,15 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
             )}
           </div>
           {post.featured_image_path && (
-            <div className="w-full sm:w-32 h-32 shrink-0 aspect-video sm:aspect-square overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={post.featured_image_path}
-                alt={post.featured_image_alt || post.title || 'Featured artwork'}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+            <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 shrink-0 p-1 bg-paper/60 border border-ink/25 shadow-2xs">
+              <div className="w-full h-full overflow-hidden border border-ink/15 bg-paper-deep">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.featured_image_path}
+                  alt={post.featured_image_alt || post.title || 'Featured artwork'}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
             </div>
           )}
         </div>
