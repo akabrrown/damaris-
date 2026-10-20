@@ -146,19 +146,34 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                 </div>
 
                 {/* Content */}
-                <div className="max-w-[760px] space-y-4">
-                  <h3 className="font-serif text-2xl sm:text-4xl text-ink font-normal leading-tight tracking-tight group-hover:underline group-hover:underline-offset-4 transition-all">
-                    {leadPiece.title}
-                  </h3>
+                <div className={leadPiece.featured_image_path ? "grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center" : "max-w-[760px] space-y-4"}>
+                  <div className={leadPiece.featured_image_path ? "md:col-span-7 space-y-4" : "space-y-4"}>
+                    <h3 className="font-serif text-2xl sm:text-4xl text-ink font-normal leading-tight tracking-tight group-hover:underline group-hover:underline-offset-4 transition-all">
+                      {leadPiece.title}
+                    </h3>
 
-                  {leadPiece.kind === 'quote' ? (
-                    <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-4">
-                      &ldquo;{leadPiece.body_md}&rdquo;
-                    </blockquote>
-                  ) : (
-                    <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
-                      &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
-                    </p>
+                    {leadPiece.kind === 'quote' ? (
+                      <blockquote className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-4">
+                        &ldquo;{leadPiece.body_md}&rdquo;
+                      </blockquote>
+                    ) : (
+                      <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
+                        &ldquo;{leadPiece.excerpt || leadPiece.body_md.slice(0, 200)}&hellip;&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  {leadPiece.featured_image_path && (
+                    <div className="md:col-span-5">
+                      <div className="w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={leadPiece.featured_image_path}
+                          alt={leadPiece.featured_image_alt || leadPiece.title || 'Featured piece artwork'}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -200,6 +215,18 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
                             {formatDate(piece.published_at)}
                           </time>
                         </div>
+
+                        {/* Featured Image Thumbnail (if available) */}
+                        {piece.featured_image_path && (
+                          <div className="mb-4 aspect-[16/10] overflow-hidden border border-ink/30 bg-paper-deep">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={piece.featured_image_path}
+                              alt={piece.featured_image_alt || piece.title || 'Artwork preview'}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                            />
+                          </div>
+                        )}
 
                         {/* Title */}
                         <h3 className="font-serif text-xl sm:text-2xl text-ink font-normal leading-snug mb-3 group-hover:underline group-hover:underline-offset-2 transition-all">

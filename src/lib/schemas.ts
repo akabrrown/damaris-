@@ -35,6 +35,9 @@ export const postInputSchema = z
     status: publishStatusSchema.default('draft'),
     notify: z.boolean().default(true),
     allow_comments: z.boolean().default(true),
+    featured_image_path: z.string().nullable().optional(),
+    featured_image_alt: z.string().nullable().optional(),
+    featured_image_caption: z.string().max(200).nullable().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.kind !== 'quote' && (!data.title || data.title.trim() === '')) {
@@ -42,6 +45,14 @@ export const postInputSchema = z
         code: z.ZodIssueCode.custom,
         path: ['title'],
         message: 'Title is required for poems, stories, and reflections.',
+      });
+    }
+
+    if (data.featured_image_path && (!data.featured_image_alt || data.featured_image_alt.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['featured_image_alt'],
+        message: 'Alt text is required whenever a featured image is uploaded.',
       });
     }
 

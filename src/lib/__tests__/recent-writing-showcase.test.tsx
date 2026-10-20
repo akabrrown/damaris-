@@ -156,5 +156,25 @@ describe('RecentWritingShowcase (Pinterest-inspired Literary Showcase)', () => {
     const leadFooter = leadArticle?.querySelector('.border-t');
     expect(leadFooter?.textContent).not.toContain('Caroline Damaris Donkor');
   });
+
+  it('renders featured image with alt text when featured_image_path is present', () => {
+    const postsWithImage: Post[] = [
+      {
+        ...mockPosts[0],
+        featured_image_path: 'https://example.com/poem-art.webp',
+        featured_image_alt: 'Delicate charcoal illustration of rain',
+        featured_image_caption: 'Charcoal on paper, 2024',
+      },
+    ];
+
+    act(() => {
+      root.render(<RecentWritingShowcase posts={postsWithImage} />);
+    });
+
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute('src')).toBe('https://example.com/poem-art.webp');
+    expect(img?.getAttribute('alt')).toBe('Delicate charcoal illustration of rain');
+  });
 });
 

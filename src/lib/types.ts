@@ -23,6 +23,9 @@ export interface Post {
   excerpt: string | null;
   attribution: string | null;
   allow_comments: boolean;
+  featured_image_path?: string | null;
+  featured_image_alt?: string | null;
+  featured_image_caption?: string | null;
   status: PublishStatus;
   published_at: string | null;
   created_at: string;

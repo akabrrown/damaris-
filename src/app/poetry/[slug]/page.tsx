@@ -21,6 +21,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.title || 'Poem',
     description: post.excerpt || post.body_md.slice(0, 150),
+    openGraph: post.featured_image_path
+      ? {
+          images: [{ url: post.featured_image_path, alt: post.featured_image_alt || post.title || 'Featured poem artwork' }],
+        }
+      : undefined,
   };
 }
 
@@ -49,7 +54,7 @@ export default async function PoemDetailPage({ params }: PageProps) {
   return (
     <article className="max-w-[36ch] mx-auto py-6 sm:py-12">
       {/* Poem Header */}
-      <header className="mb-12 text-left">
+      <header className="mb-10 text-left">
         <div className="text-xs uppercase tracking-wider text-muted mb-3">
           <span>Poem</span> &middot; <time dateTime={post.published_at || ''}>{formattedDate}</time>
         </div>
@@ -57,6 +62,25 @@ export default async function PoemDetailPage({ params }: PageProps) {
           {post.title}
         </h1>
       </header>
+
+      {/* Featured Artwork Vignette */}
+      {post.featured_image_path && (
+        <figure className="my-8 flex flex-col items-center">
+          <div className="w-full max-w-[340px] aspect-[4/3] overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={post.featured_image_path}
+              alt={post.featured_image_alt || post.title || 'Poem artwork'}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {post.featured_image_caption && (
+            <figcaption className="text-xs text-muted font-sans italic text-center mt-2">
+              {post.featured_image_caption}
+            </figcaption>
+          )}
+        </figure>
+      )}
 
       {/* Verse body preserving stanzas, breaks, and indentations (FR-READ-02) */}
       <div className="poem-block text-ink text-left space-y-6 sm:space-y-8 my-10">

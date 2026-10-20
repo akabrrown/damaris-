@@ -56,15 +56,29 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
             )}
             <time dateTime={post.published_at || ''} className="ml-auto">{formattedDate}</time>
           </div>
-          {featuredLines && (
-            <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed whitespace-pre-line mb-3">
-              &ldquo;{featuredLines}&rdquo;
-            </p>
-          )}
-          <h2 className="font-serif text-lg sm:text-xl font-normal text-ink flex items-center justify-between gap-2">
-            <span>{post.title}</span>
-            <span className="text-xs uppercase tracking-wider text-ink font-sans font-medium group-hover:underline" aria-hidden="true">&rarr; Read</span>
-          </h2>
+          <div className={post.featured_image_path ? "flex flex-col sm:flex-row gap-5 items-start justify-between" : ""}>
+            <div className="flex-1 min-w-0">
+              {featuredLines && (
+                <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed whitespace-pre-line mb-3">
+                  &ldquo;{featuredLines}&rdquo;
+                </p>
+              )}
+              <h2 className="font-serif text-lg sm:text-xl font-normal text-ink flex items-center justify-between gap-2">
+                <span>{post.title}</span>
+                <span className="text-xs uppercase tracking-wider text-ink font-sans font-medium group-hover:underline" aria-hidden="true">&rarr; Read</span>
+              </h2>
+            </div>
+            {post.featured_image_path && (
+              <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.featured_image_path}
+                  alt={post.featured_image_alt || post.title || 'Poem artwork'}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            )}
+          </div>
         </Link>
       </article>
     );
@@ -83,14 +97,30 @@ export function EntryRow({ post, showKindLabel = true }: EntryRowProps) {
           {readingTime && <span>&middot; {readingTime} min read</span>}
           <time dateTime={post.published_at || ''} className="ml-auto">{formattedDate}</time>
         </div>
-        <h2 className="font-serif text-2xl sm:text-3xl font-normal text-ink group-hover:underline group-hover:underline-offset-4 transition-colors">
-          {post.title}
-        </h2>
-        {post.excerpt && (
-          <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
-            &ldquo;{post.excerpt}&rdquo;
-          </p>
-        )}
+
+        <div className={post.featured_image_path ? "flex flex-col sm:flex-row gap-5 items-start justify-between" : ""}>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-serif text-2xl sm:text-3xl font-normal text-ink group-hover:underline group-hover:underline-offset-4 transition-colors">
+              {post.title}
+            </h2>
+            {post.excerpt && (
+              <p className="font-serif italic text-xl sm:text-2xl text-ink leading-relaxed my-3 line-clamp-3">
+                &ldquo;{post.excerpt}&rdquo;
+              </p>
+            )}
+          </div>
+          {post.featured_image_path && (
+            <div className="w-full sm:w-32 h-32 shrink-0 aspect-video sm:aspect-square overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.featured_image_path}
+                alt={post.featured_image_alt || post.title || 'Featured artwork'}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="mt-4 pt-3 border-t border-ink/20 flex items-center justify-end text-xs uppercase tracking-wider text-ink font-sans font-medium">
           <span className="group-hover:underline">Read &rarr;</span>
         </div>

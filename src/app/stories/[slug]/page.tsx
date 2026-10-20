@@ -22,6 +22,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.title || 'Short Story',
     description: post.excerpt || post.body_md.slice(0, 150),
+    openGraph: post.featured_image_path
+      ? {
+          images: [{ url: post.featured_image_path, alt: post.featured_image_alt || post.title || 'Featured artwork' }],
+        }
+      : undefined,
   };
 }
 
@@ -68,6 +73,25 @@ export default async function StoryDetailPage({ params }: PageProps) {
           </p>
         )}
       </header>
+
+      {/* Featured Artwork / Banner */}
+      {post.featured_image_path && (
+        <figure className="my-8 sm:my-10 space-y-2">
+          <div className="w-full aspect-[16/9] overflow-hidden border border-ink/40 bg-paper-deep shadow-2xs">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={post.featured_image_path}
+              alt={post.featured_image_alt || post.title || 'Story featured artwork'}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {post.featured_image_caption && (
+            <figcaption className="text-xs text-muted font-sans italic text-center pt-1">
+              {post.featured_image_caption}
+            </figcaption>
+          )}
+        </figure>
+      )}
 
       {/* Prose Body */}
       <div

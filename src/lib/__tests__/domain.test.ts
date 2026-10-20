@@ -158,6 +158,28 @@ describe('Domain Libraries (TDD)', () => {
           body_md: 'Stanza 1',
         }).success
       ).toBe(true);
+
+      // Post with featured image requires alt text
+      expect(
+        postInputSchema.safeParse({
+          kind: 'poem',
+          title: 'Morning Frost',
+          body_md: 'Stanza 1',
+          featured_image_path: 'https://example.com/artwork.jpg',
+        }).success
+      ).toBe(false);
+
+      // Post with featured image and alt text passes
+      expect(
+        postInputSchema.safeParse({
+          kind: 'poem',
+          title: 'Morning Frost',
+          body_md: 'Stanza 1',
+          featured_image_path: 'https://example.com/artwork.jpg',
+          featured_image_alt: 'Delicate frost on morning pine branches',
+          featured_image_caption: 'Oil on canvas, 2024',
+        }).success
+      ).toBe(true);
     });
 
     it('enforces book constraints: title, synopsis_md, cover_alt required when cover_path exists', () => {

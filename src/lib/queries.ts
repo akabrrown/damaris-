@@ -31,7 +31,7 @@ export async function getRecentPosts(limit = 6): Promise<Post[]> {
     const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('posts')
-      .select('id, kind, slug, title, body_md, excerpt, attribution, status, published_at, created_at, updated_at')
+      .select('id, kind, slug, title, body_md, excerpt, attribution, allow_comments, featured_image_path, featured_image_alt, featured_image_caption, status, published_at, created_at, updated_at')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
       .order('id', { ascending: false })
@@ -65,7 +65,7 @@ export async function getPostsByKind(
 
     let query = supabase
       .from('posts')
-      .select('id, kind, slug, title, body_md, excerpt, attribution, status, published_at, created_at, updated_at')
+      .select('id, kind, slug, title, body_md, excerpt, attribution, allow_comments, featured_image_path, featured_image_alt, featured_image_caption, status, published_at, created_at, updated_at')
       .eq('status', 'published')
       .eq('kind', kind)
       .order('published_at', { ascending: false })
@@ -112,7 +112,7 @@ export async function getPostBySlug(kind: PostKind, slug: string): Promise<Post 
     const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
     const { data, error } = await supabase
       .from('posts')
-      .select('id, kind, slug, title, body_md, excerpt, attribution, allow_comments, status, published_at, created_at, updated_at')
+      .select('id, kind, slug, title, body_md, excerpt, attribution, allow_comments, featured_image_path, featured_image_alt, featured_image_caption, status, published_at, created_at, updated_at')
       .eq('status', 'published')
       .eq('kind', kind)
       .eq('slug', normalizedSlug)

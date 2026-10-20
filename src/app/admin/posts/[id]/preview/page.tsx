@@ -40,6 +40,24 @@ export default async function DraftPreviewPage({ params }: PageProps) {
             <h1 className="font-serif text-3xl sm:text-4xl text-ink font-normal">{post.title}</h1>
           </header>
 
+          {post.featured_image_path && (
+            <figure className="my-8 flex flex-col items-center">
+              <div className="w-full max-w-[340px] aspect-[4/3] overflow-hidden border border-ink/30 bg-paper-deep shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.featured_image_path}
+                  alt={post.featured_image_alt || post.title || 'Poem artwork'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {post.featured_image_caption && (
+                <figcaption className="text-xs text-muted font-sans italic text-center mt-2">
+                  {post.featured_image_caption}
+                </figcaption>
+              )}
+            </figure>
+          )}
+
           <div className="poem-block text-ink text-left space-y-6 sm:space-y-8">
             {renderVerse(post.body_md).map((stanza, sIdx) => (
               <p key={sIdx} className="m-0">
@@ -82,6 +100,24 @@ export default async function DraftPreviewPage({ params }: PageProps) {
               </p>
             )}
           </header>
+
+          {post.featured_image_path && (
+            <figure className="my-8 space-y-2">
+              <div className="w-full aspect-[16/9] overflow-hidden border border-ink/40 bg-paper-deep shadow-2xs">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.featured_image_path}
+                  alt={post.featured_image_alt || post.title || 'Featured artwork'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {post.featured_image_caption && (
+                <figcaption className="text-xs text-muted font-sans italic text-center pt-1">
+                  {post.featured_image_caption}
+                </figcaption>
+              )}
+            </figure>
+          )}
 
           <div
             className="prose-reading leading-relaxed"

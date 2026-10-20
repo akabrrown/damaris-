@@ -20,7 +20,8 @@ import {
 } from '@/components/markdown-toolbar';
 import { renderVerse, renderVerseLineHtml, sanitizeMarkdown } from '@/lib/content-renderer';
 import { getPiecePath } from '@/lib/routing';
-import { Edit3, Eye, Columns2, HelpCircle } from 'lucide-react';
+import { Edit3, Eye, Columns2, HelpCircle, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 
 interface PostEditorProps {
@@ -34,6 +35,9 @@ interface PostEditorProps {
     attribution: string | null;
     allow_comments?: boolean;
     status: PublishStatus;
+    featured_image_path?: string | null;
+    featured_image_alt?: string | null;
+    featured_image_caption?: string | null;
   };
   defaultKind?: PostKind;
   confirmedSubscribersCount: number;
@@ -56,6 +60,10 @@ export function PostEditor({
   const [attribution, setAttribution] = useState(initialPost?.attribution || '');
   const [allowComments, setAllowComments] = useState<boolean>(initialPost?.allow_comments ?? true);
   const [status, setStatus] = useState<PublishStatus>(initialPost?.status || 'draft');
+  const [featuredImagePath, setFeaturedImagePath] = useState(initialPost?.featured_image_path || '');
+  const [featuredImageAlt, setFeaturedImageAlt] = useState(initialPost?.featured_image_alt || '');
+  const [featuredImageCaption, setFeaturedImageCaption] = useState(initialPost?.featured_image_caption || '');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleBodyChange = (newBody: string) => {
     setBodyMd(newBody);
@@ -115,6 +123,44 @@ export function PostEditor({
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('Image size exceeds 5 MB limit.');
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type)) {
+      setErrorMessage('Only JPEG, PNG, WebP, or AVIF images are permitted.');
+      return;
+    }
+
+    setUploadingImage(true);
+    setErrorMessage('');
+
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'webp';
+      const path = `posts/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+      const { data, error } = await supabase.storage.from('media').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path);
+      setFeaturedImagePath(publicUrlData.publicUrl);
+    } catch (err: unknown) {
+      setErrorMessage(`Upload failed: ${(err as Error).message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const renderLivePreview = () => {
     if (!bodyMd.trim()) {
       return (
@@ -134,6 +180,25 @@ export function PostEditor({
               <h2 className="font-serif text-2xl sm:text-3xl text-ink font-normal">{title}</h2>
             </header>
           )}
+
+          {featuredImagePath && (
+            <figure className="my-6 flex flex-col items-center">
+              <div className="w-full max-w-[340px] aspect-[4/3] overflow-hidden border border-ink/30 bg-paper-deep">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={featuredImagePath}
+                  alt={featuredImageAlt || 'Poem artwork'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {featuredImageCaption && (
+                <figcaption className="text-xs text-muted font-sans italic text-center mt-2">
+                  {featuredImageCaption}
+                </figcaption>
+              )}
+            </figure>
+          )}
+
           <div className="poem-block text-ink text-left space-y-6 sm:space-y-8 my-4">
             {stanzas.map((stanza, sIdx) => (
               <p key={sIdx} className="m-0">
@@ -176,6 +241,25 @@ export function PostEditor({
             <h2 className="font-serif text-2xl sm:text-3xl text-ink font-normal">{title}</h2>
           </header>
         )}
+
+        {featuredImagePath && (
+          <figure className="my-6 space-y-2">
+            <div className="w-full aspect-[16/9] overflow-hidden border border-ink/40 bg-paper-deep">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={featuredImagePath}
+                alt={featuredImageAlt || title || 'Featured image'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {featuredImageCaption && (
+              <figcaption className="text-xs text-muted font-sans italic text-center">
+                {featuredImageCaption}
+              </figcaption>
+            )}
+          </figure>
+        )}
+
         <div
           className="prose-reading leading-relaxed"
           dangerouslySetInnerHTML={{ __html: sanitizeMarkdown(bodyMd) }}
@@ -186,6 +270,9 @@ export function PostEditor({
 
   const handleAutoSave = React.useCallback(async () => {
     if (!id || !bodyMd.trim()) return;
+    // Don't auto-save with featured image if alt text is missing (required by schema)
+    if (featuredImagePath && !featuredImageAlt.trim()) return;
+
     setSaveState('saving');
     const finalExcerpt = excerpt.trim() || generateExcerpt(bodyMd, kind) || undefined;
     try {
@@ -196,12 +283,15 @@ export function PostEditor({
         attribution: attribution || undefined,
         slug: slug || undefined,
         allow_comments: allowComments,
+        featured_image_path: featuredImagePath || null,
+        featured_image_alt: featuredImageAlt || null,
+        featured_image_caption: featuredImageCaption || null,
       });
       setSaveState('saved');
     } catch {
       setSaveState('unsaved');
     }
-  }, [id, title, bodyMd, excerpt, attribution, slug, kind, allowComments]);
+  }, [id, title, bodyMd, excerpt, attribution, slug, kind, allowComments, featuredImagePath, featuredImageAlt, featuredImageCaption]);
 
   // Autosave timer
   useEffect(() => {
@@ -217,6 +307,11 @@ export function PostEditor({
 
   const handleSaveDraft = async () => {
     setErrorMessage('');
+    if (featuredImagePath && !featuredImageAlt.trim()) {
+      setErrorMessage('Image alt text is required for accessibility whenever a featured image is uploaded.');
+      return;
+    }
+
     const finalExcerpt = excerpt.trim() || generateExcerpt(bodyMd, kind) || undefined;
     startTransition(async () => {
       try {
@@ -229,6 +324,9 @@ export function PostEditor({
             attribution: attribution || undefined,
             slug: slug || generateSlug(title || 'item'),
             allow_comments: allowComments,
+            featured_image_path: featuredImagePath || undefined,
+            featured_image_alt: featuredImageAlt || undefined,
+            featured_image_caption: featuredImageCaption || undefined,
             status: 'draft',
             notify: false,
           });
@@ -242,6 +340,9 @@ export function PostEditor({
             attribution: attribution || undefined,
             slug: slug || undefined,
             allow_comments: allowComments,
+            featured_image_path: featuredImagePath || null,
+            featured_image_alt: featuredImageAlt || null,
+            featured_image_caption: featuredImageCaption || null,
           });
         }
         setSaveState('saved');
@@ -676,6 +777,148 @@ export function PostEditor({
               }
               className="w-full px-3 py-2 bg-paper border border-line text-sm text-ink rounded-none focus:outline-2 focus:outline-moss"
             />
+          </div>
+        )}
+
+        {/* Featured Artwork / Image (Poems, Stories & Reflections) */}
+        {kind !== 'quote' && (
+          <div className="p-5 bg-paper-deep border border-line space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-muted font-medium">
+                  Featured Artwork / Illustration
+                </label>
+                <p className="text-xs text-muted mt-0.5">
+                  {kind === 'poem'
+                    ? 'Upload a delicate artwork vignette or illustration displayed above the poem verses.'
+                    : 'Upload an editorial cover image or painting displayed at the top of this piece.'}
+                </p>
+              </div>
+              {featuredImagePath && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFeaturedImagePath('');
+                    setFeaturedImageAlt('');
+                    setFeaturedImageCaption('');
+                  }}
+                  className="text-xs text-alert hover:underline cursor-pointer"
+                >
+                  Remove artwork
+                </button>
+              )}
+            </div>
+
+            {featuredImagePath ? (
+              <div className="space-y-4 pt-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-paper p-3 border border-line">
+                  <div className="w-36 h-24 sm:w-44 sm:h-28 shrink-0 overflow-hidden border border-ink/30 bg-paper-deep relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={featuredImagePath}
+                      alt={featuredImageAlt || 'Featured preview'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2 text-xs">
+                    <p className="text-ink font-medium truncate max-w-md">
+                      {featuredImagePath.split('/').pop()}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <label
+                        htmlFor="post-image-replace"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-paper border border-line text-ink hover:bg-paper-deep cursor-pointer font-medium"
+                      >
+                        <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>Replace file</span>
+                        <input
+                          id="post-image-replace"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                          className="sr-only"
+                        />
+                      </label>
+                      {uploadingImage && (
+                        <span className="flex items-center gap-1 text-muted">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading…
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alt text field (Required for a11y) */}
+                <div>
+                  <label
+                    htmlFor="post-featured-image-alt"
+                    className="block text-xs uppercase tracking-wider text-muted font-medium mb-1"
+                  >
+                    Image Description / Alt Text <span className="text-alert">*</span>
+                    <span className="text-[10px] text-muted normal-case ml-2 font-normal">
+                      (Required for accessibility &amp; screen readers)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    id="post-featured-image-alt"
+                    value={featuredImageAlt}
+                    onChange={(e) => setFeaturedImageAlt(e.target.value)}
+                    placeholder="e.g. Painting of rain falling against a window in dim twilight"
+                    className="w-full px-3 py-2 bg-paper border border-ink text-ink text-sm rounded-none focus:outline-2 focus:outline-moss"
+                    required
+                  />
+                </div>
+
+                {/* Caption / Credit field (Optional) */}
+                <div>
+                  <label
+                    htmlFor="post-featured-image-caption"
+                    className="block text-xs uppercase tracking-wider text-muted font-medium mb-1"
+                  >
+                    Caption or Artist Credit <span className="text-[10px] text-muted normal-case ml-2 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="post-featured-image-caption"
+                    value={featuredImageCaption}
+                    onChange={(e) => setFeaturedImageCaption(e.target.value)}
+                    placeholder="e.g. Oil on linen, 2024 / Photograph courtesy of..."
+                    className="w-full px-3 py-2 bg-paper border border-line text-ink text-sm rounded-none focus:outline-2 focus:outline-moss"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-line p-6 text-center bg-paper hover:bg-paper-deep/50 transition-colors">
+                <label
+                  htmlFor="post-image-upload"
+                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                >
+                  <div className="p-2.5 bg-paper-deep rounded-full border border-line text-muted">
+                    {uploadingImage ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-moss" />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-muted" aria-hidden="true" />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium text-ink">
+                    {uploadingImage ? 'Uploading image to media library…' : 'Click to select artwork or featured image'}
+                  </span>
+                  <span className="text-[11px] text-muted">
+                    PNG, JPEG, WebP or AVIF &middot; Max 5 MB
+                  </span>
+                  <input
+                    id="post-image-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
+            )}
           </div>
         )}
 

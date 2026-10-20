@@ -51,6 +51,9 @@ export async function createPostAction(input: PostInput) {
       excerpt: validated.excerpt || generateExcerpt(validated.body_md, validated.kind) || null,
       attribution: validated.attribution || null,
       allow_comments: validated.allow_comments ?? true,
+      featured_image_path: validated.featured_image_path || null,
+      featured_image_alt: validated.featured_image_alt || null,
+      featured_image_caption: validated.featured_image_caption || null,
       status: 'draft',
     })
     .select('id, slug, kind')
@@ -96,6 +99,9 @@ export async function updatePostAction(id: string, input: Partial<PostInput>) {
   }
   if (input.attribution !== undefined) updateData.attribution = input.attribution;
   if (input.allow_comments !== undefined) updateData.allow_comments = input.allow_comments;
+  if (input.featured_image_path !== undefined) updateData.featured_image_path = input.featured_image_path || null;
+  if (input.featured_image_alt !== undefined) updateData.featured_image_alt = input.featured_image_alt || null;
+  if (input.featured_image_caption !== undefined) updateData.featured_image_caption = input.featured_image_caption || null;
 
   // Slug can only be changed before first publish
   if (input.slug && existing.status === 'draft') {
