@@ -56,17 +56,9 @@ export function RecentWritingShowcase({ posts }: RecentWritingShowcaseProps) {
 
   return (
     <section aria-labelledby="recent-heading" className="space-y-8">
-      {/* Section Header & Pinterest-style Genre Pills */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-line pb-6">
-        <div>
-          <div className="w-10 h-0.5 bg-sage mb-3" aria-hidden="true" />
-          <h2 id="recent-heading" className="font-serif text-3xl sm:text-4xl text-ink font-normal tracking-tight">
-            Recent writing
-          </h2>
-          <p className="font-serif text-base sm:text-lg text-muted mt-1 italic">
-            Curated poems, stories, fragments, and personal essays.
-          </p>
-        </div>
+      {/* Genre Filter Pills */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+        <h2 id="recent-heading" className="sr-only">Writing</h2>
 
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter writing by kind">

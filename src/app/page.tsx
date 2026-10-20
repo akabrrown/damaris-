@@ -12,23 +12,10 @@ export default async function HomePage() {
   ]);
 
   const authorName = settings?.author_name || 'Caroline Damaris Donkor';
-  const tagline = settings?.tagline || 'I give the unsaid a language of its own';
 
   return (
-    <div className="space-y-16 sm:space-y-24">
-      {/* Intro Header */}
-      <section aria-labelledby="intro-heading" className="max-w-[720px] pt-4 sm:pt-8">
-        <div className="w-12 h-1 bg-sage mb-6" aria-hidden="true" />
-        <h1
-          id="intro-heading"
-          className="font-serif text-3xl sm:text-5xl lg:text-6xl text-ink font-normal leading-[1.15] tracking-tight"
-        >
-          {authorName}
-        </h1>
-        <p className="font-serif text-xl sm:text-2xl text-muted font-normal mt-4 leading-relaxed">
-          {tagline}
-        </p>
-      </section>
+    <div className="space-y-12 sm:space-y-16 pt-2 sm:pt-4">
+      <h1 className="sr-only">{authorName}</h1>
 
       {/* Recent Writing Showcase */}
       <RecentWritingShowcase posts={recentPosts} />
